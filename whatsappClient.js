@@ -3,6 +3,9 @@ const qrcode = require("qrcode-terminal");
 let sessionIniciada = false; // Estado de la sesión
 let qrCode = null; // Guardar el código QR generado
 let client; // Variable para almacenar la instancia del cliente
+const setQrCode = (qr) => {
+  qrCode = qr;
+};
 const axios = require('axios'); // Importa la librería axios
 require('dotenv').config(); // Carga las variables de entorno desde el archivo .env
 
@@ -23,6 +26,7 @@ const initializeWhatsAppClient = () => {
     console.clear();
     console.log("QR GENERADO! -> ", qr);
     qrCode = qr; // Guardamos el código QR generado
+    setQrCode(qrCode); // Guardamos el código QR usando la función
     console.log("Puedes usar esto!");
     qrcode.generate(qr, { small: true });
   });
@@ -75,10 +79,8 @@ const initializeWhatsAppClient = () => {
 
 // Función para obtener el estado de la sesión
 const isSessionIniciada = () => sessionIniciada;
-
 // Función para obtener el QR generado
-const getQRCode = () => qrCode;
-
+const getQrCode = () => qrCode;
 // Función para obtener el cliente de WhatsApp
 const getClient = () => client;
 
@@ -87,6 +89,8 @@ const getClient = () => client;
 module.exports = {
   initializeWhatsAppClient,
   isSessionIniciada,
-  getQRCode,
+  getQrCode,
   getClient,
+  setQrCode // Exportamos la función para establecer el QR
+
 };
