@@ -1,0 +1,54 @@
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1473, '+58 412-5244415', NULL, '584125244415', '584125244415@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1475, '0412-6766566', NULL, '584126766566', '584126766566@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1477, '0424-5556148', NULL, '584245556148', '584245556148@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1479, 'Alejandro', 'Alejandro', '584140358904', '584140358904@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1481, 'Alexis', NULL, '584160764370', '584160764370@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1485, 'Alina', NULL, '584162565368', '584162565368@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1487, 'Alitza Fernanda Aranda🌼', NULL, '584162539597', '584162539597@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1490, 'Amirsa', NULL, '584149591379', '584149591379@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1491, 'Amirsa', NULL, '584245610910', '584245610910@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1493, 'Anabel Perez', NULL, '584245503224', '584245503224@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1495, 'areangela1978', NULL, '584140771441', '584140771441@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1497, 'Cabello', NULL, '584245621784', '584245621784@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1499, 'Camioneta El Nula Barinas Señor Jesus', NULL, '584165898850', '584165898850@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1501, 'Canvas', NULL, '584241535471', '584241535471@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1503, 'Carlos Navas', 'El.Terror.Del.Llano', '584125596458', '584125596458@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1504, 'Carro', NULL, '584246377275', '584246377275@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1507, 'Clarivel Viajes', '584243178194', '584243178194', '584243178194@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1509, 'Clarivwl Viajes', 'CLARIMER 🤗', '584245557639', '584245557639@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1511, 'Cliente 1', NULL, '584145649933', '584145649933@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1513, 'Cliente Chaqueta De Niña', NULL, '584121438959', '584121438959@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1514, 'Culiente Dolores', NULL, '584264343344', '584264343344@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1517, 'Daboin', 'MilaDaboin 🥰👩‍💻👩‍👦🐾🐶🐱', '584163279335', '584163279335@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1519, 'Dalia', NULL, '584161236613', '584161236613@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1521, 'Daniel Núñez Rgp', NULL, '584120801577', '584120801577@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1523, 'De Pitter', NULL, '584245118412', '584245118412@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1525, 'Dulce Barco Cliente', NULL, '584268126719', '584268126719@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1526, 'Elio Tv', NULL, '584145125282', '584145125282@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1529, 'ender', NULL, '584149557861', '584149557861@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1531, 'Enrique', 'Enrique García', '584141392227', '584141392227@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1533, 'Epanada', NULL, '584248341433', '584248341433@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1535, 'Esperanza', NULL, '584245526406', '584245526406@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1537, 'Felianny Ocanto', NULL, '584127444690', '584127444690@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1539, 'Fidel', 'silvafidel489', '584245824011', '584245824011@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1541, 'Gabriel', NULL, '584125731825', '584125731825@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1542, 'Gabriela Mora', NULL, '584245393356', '584245393356@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1545, 'Gregoria', NULL, '584245082915', '584245082915@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1547, 'Hija Roxi', 'Roxy', '584245232895', '584245232895@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1549, 'Hk', NULL, '584145648462', '584145648462@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1551, 'Hormiga Mercado', NULL, '584120106054', '584120106054@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1553, 'Inversiones Emmanuel', NULL, '584143660108', '584143660108@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1555, 'Irenw', 'Irene', '584245318341', '584245318341@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1557, 'ISNAILIS BURGOS', '✨Isnailis Burgos✨', '584126731674', '584126731674@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1559, 'Jairo Enfermero', NULL, '584245055573', '584245055573@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1561, 'Jaudi 😈', NULL, '584245485271', '584245485271@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1563, 'José Gil', NULL, '584245904276', '584245904276@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1565, 'José Intt', NULL, '584120585927', '584120585927@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1567, 'Joselo', NULL, '584144204530', '584144204530@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1569, 'Juan Carlo', NULL, '584245199289', '584245199289@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1570, 'Juan Gomez', NULL, '584143392527', '584143392527@c.us');
+insert into `clientes` (`proximo_pago`, `fecha_contratacion`, `id`, `nombre`, `pushName`, `w_number_tlf`, `wid`) values (NULL, NULL, 1573, 'Lentes', NULL, '584247219447', '584247219447@c.us');
+-- insertar mensajes por defecto que se enviara como recordatorio a cada cliente
+insert into `template_mensaje` (`body` , `description` ) values (' Hola @nombre, Esperamos que estés disfrutando de nuestros servicios de internet. Nos gustaría recordarte que tu próximo pago está por vencer en @dias días. Esperamos que tena un feliz dia y que pudea seguir disfrutando de nuestros servicios sin interrupciones. Recuerde su fecha de vencimientos es @proximo_pago Si tienes alguna pregunta o necesitas asistencia para realizar tu pago, no dudes en contactarnos. Podemos ayudarte a encontrar la mejor opción de pago para ti.
+Gracias por tu preferencia y cooperación.
+Saludos cordiales' , 'Mensaje por defecto')
