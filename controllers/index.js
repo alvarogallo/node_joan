@@ -88,7 +88,7 @@ const {
       const { phone, msg } = req.body;
 
       try {
-     
+    
         res.send({phone: phone, msg: [msg]});
       } catch (error) {
         console.error("Error al enviar mensaje: ", error);
@@ -150,6 +150,7 @@ const {
   const listWsParticipants = async (req, res) => {
     if (isSessionIniciada()) {
         const client = getClient(); // Obtenemos el cliente de WhatsApp
+        //Recibimos del body el nombre del grupo del cual se le quieren sacar los participantes.
         const { groupName } = req.body;
   
         const chats = await client.getChats();

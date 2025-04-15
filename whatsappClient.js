@@ -4,6 +4,7 @@ let sessionIniciada = false; // Estado de la sesión
 let qrCode = null; // Guardar el código QR generado
 let client; // Variable para almacenar la instancia del cliente
 const axios = require('axios'); // Importa la librería axios
+require('dotenv').config(); // Carga las variables de entorno desde el archivo .env
 
 const initializeWhatsAppClient = () => {
   client = new Client({
@@ -45,7 +46,12 @@ const initializeWhatsAppClient = () => {
     console.log(`Número: ${senderNumber} - Mensaje: ${msg.body}`);
 
     // **Enviar datos a la API externa**
-    const apiUrl = 'https://apisbotman.unatecla.com/api/viene_de_joan'; // Reemplaza con la URL de tu API
+    const apiUrl = process.env.API_URL; // Obtiene la URL de la API desde las variables de entorno
+
+    if (!apiUrl) {
+      console.error('Error: La variable de entorno API_URL no está definida en el archivo .env');
+      return; // Detiene la ejecución si la URL no está configurada
+    }
 
     try {
       const response = await axios.post(apiUrl, {

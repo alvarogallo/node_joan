@@ -18,7 +18,7 @@
     "/login": {
       "get": {
         "summary": "Login to WhatsApp",
-        "description": "Vincula un teléfono del cliente a WhatsApp",
+        "description": "Vincula un teléfono del cliente a WhatsApp, retorna un QR si no esta iniciada la sesión, y returna un true si esta ya logeado",
         "responses": {
           "200": {
             "description": "Successful Login",
@@ -38,7 +38,7 @@
     "/send": {
       "post": {
         "summary": "Send Message via WhatsApp",
-        "description": "Envía un mensaje a un número de teléfono Deseado pasado por post",
+        "description": "Envía un mensaje a un número de teléfono Pasando por el body de la peticion el msg y el wid",
         "parameters": [
           {
             "name": "Enviar mensaje",

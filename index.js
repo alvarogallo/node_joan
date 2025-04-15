@@ -12,7 +12,7 @@ const apiRoutes = require("./routes/api"); // Importamos el router que creamos
 // Inicializamos el cliente de WhatsApp
 initializeWhatsAppClient();
 
-app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use("/doc", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
