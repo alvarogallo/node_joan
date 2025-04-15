@@ -3,7 +3,7 @@
 const {
     isSessionIniciada,
     getClient,
-    getQRCode,
+    getQrCode,
   } = require("../whatsappClient");
 
   
@@ -33,7 +33,7 @@ const {
   
   // El login ahora convierte el QR a base64 si está disponible
   const login = async (req, res) => {
-    const qrCode = getQRCode(); // Obtenemos el QR generado
+    const qrCode = getQrCode(); // Obtenemos el QR generado
   
     if (isSessionIniciada()) {
       res.send({ login: true });
