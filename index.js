@@ -12,7 +12,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(
   //Solo respondo peticiones provenientes de origin
   cors({
-    origin: process.env.VITE_APP_HOST,
+    origin: "*",
   })
 );
 app.use(express.json());
