@@ -1,31 +1,33 @@
 const express = require("express");
-const app = express();
-const router = require("./src/router");
+// const router = require("./routes/index"); // Ya no necesitamos importar esto directamente aquí
 const morgan = require("morgan");
-const port = process.env.PORT || 6969;
-const validJson = require("./src/middleware/errorHandler");
-require("dotenv").config();
 const cors = require("cors");
-const path = require("path");
-app.use(express.static(path.join(__dirname, "public")));
+const app = express();
+const swaggerUi = require("swagger-ui-express");
+const swaggerDocument = require("./swagger.json");
+const port = 6969;
+const { initializeWhatsAppClient } = require("./whatsappClient"); // Importamos la inicialización
+const apiRoutes = require("./routes/api"); // Importamos el router que creamos
 
-app.use(
-  //Solo respondo peticiones provenientes de origin
-  cors({
-    origin: "*",
-  })
-);
+// Inicializamos el cliente de WhatsApp
+initializeWhatsAppClient();
+
+app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use(express.json());
-// esto es para ver logs http en la terminal
-app.use(morgan("dev"));
+app.use(express.urlencoded({ extended: true }));
+app.use(
+    morgan(":method :url :status :res[content-length] - :response-time ms")
+);
+app.use(
+    //Solo respondo peticiones provenientes de cualquier origen del localhost
+    cors({
+        origin: "*",
+    })
+);
 
-app.use("/", router);
+// Usamos el router que importamos para manejar las rutas bajo el prefijo "/api"
+app.use("/api", apiRoutes);
 
-app.use((err, req, res, next) => {
-  /*Valida si en el body de la peticion existe un json valido*/
-  validJson(err, res);
-});
-
-app.listen(port, function () {
-  console.log(`App Runnin in: http://localhost:${port}`);
+app.listen(port, () => {
+    console.log(`Servicio escuchando en http://localhost:${port}`);
 });

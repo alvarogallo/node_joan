@@ -1,0 +1,162 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Service of WhatsApp Messenger",
+    "version": "1.0.0",
+    "description": "API para enviar mensajes por WhatsApp usando WhatsApp Web JS"
+  },
+  "host": "localhost:3000",
+  "basePath": "/api",
+  "schemes": ["http"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "paths": {
+    "/login": {
+      "get": {
+        "summary": "Login to WhatsApp",
+        "description": "Vincula un teléfono del cliente a WhatsApp",
+        "responses": {
+          "200": {
+            "description": "Successful Login",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "login": {
+                  "type": "boolean",
+                  "description": "Si se escanea con exito el whastapp del cliente muestra un login true"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/send": {
+      "post": {
+        "summary": "Send Message via WhatsApp",
+        "description": "Envía un mensaje a un número de teléfono Deseado pasado por post",
+        "parameters": [
+          {
+            "name": "Enviar mensaje",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "numero": {
+                  "type": "string",
+                  "description": "Número de teléfono venezolano (sin signo + y con el cero) ejemplo (04145057588)"
+                },
+                "message": {
+                  "type": "string",
+                  "description": "Cuerpo del mensaje en utf-8 se puede mandar emoji"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Message sent successfully",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean",
+                  "description": "Indica que el mensaje fue enviado!"
+                },
+                "message": {
+                  "type": "string",
+                  "description": "Mensaje de éxito"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal Server Error",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean",
+                  "description": "indica que algo salio mal"
+                },
+                "message": {
+                  "type": "string",
+                  "description": "Mensaje que describe el error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean",
+                  "description": "Indica que no estas autorizado a aceder al recurso"
+                },
+                "message": {
+                  "type": "string",
+                  "description": "Debes estar autorizado para usar estas funciones"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "wsGroups": {
+      "get": {
+        "summary": "Get Groups",
+        "description": "Retorna  un array con los nombres de los grupos del cliente",
+        "responses": {
+          "200": {
+            "description": "Array con una lista de strings con los nombres de los grupos",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "wsParticipants": {
+      "post": {
+        "summary": "envias un nombre de grupo por el cuerpo del request, y te retorna un array con los numeros de telefono de cada participante.",
+        "description": "Recibe un string con el nombre del grupo y retorna un arreglo con los numeros de telefono de cada participante.",
+        "parameters": [
+          {
+            "name": "groupName",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "groupName": {
+                  "type": "string",
+                  "description": "Nombre del grupo que deseas obtener los numeros de telefono de cada participante."
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array con los números de teléfono de cada participante.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "description": "Número de teléfono de cada participante"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
