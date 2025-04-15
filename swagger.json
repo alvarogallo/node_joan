@@ -1,11 +1,15 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Service of WhatsApp Messenger",
+    "title": "API para configurar el bot de WhatsApp Joan.",
     "version": "1.0.0",
-    "description": "API para enviar mensajes por WhatsApp usando WhatsApp Web JS"
+    "description": "API para enviar mensajes por WhatsApp usando WhatsApp Web JS, enviar mensajes a grupos y obtener los numeros de telefono de cada participante de un grupo.",
+    "contact": {
+      "name": "Joan",
+      "email": "joangabriel684@gmail.com"
+    }
   },
-  "host": "localhost:3000",
+  "host": "localhost:6969",
   "basePath": "/api",
   "schemes": ["http"],
   "consumes": ["application/json"],
@@ -45,7 +49,7 @@
               "properties": {
                 "numero": {
                   "type": "string",
-                  "description": "Número de teléfono venezolano (sin signo + y con el cero) ejemplo (04145057588)"
+                  "description": "Se debe pasar el wid del contacto que deseas enviar el mensaje."
                 },
                 "message": {
                   "type": "string",
@@ -55,6 +59,14 @@
             }
           }
         ],
+        "Example.json": {
+          "Ejemplo": {
+            "value": {
+              "phone": "584145057588@c.us",
+              "msg" : "GENIAL!"
+          }
+          }
+        },
         "responses": {
           "200": {
             "description": "Message sent successfully",
