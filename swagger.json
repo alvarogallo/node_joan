@@ -15,10 +15,10 @@
   "consumes": ["application/json"],
   "produces": ["application/json"],
   "paths": {
-    "/api/login": {
+    "/api/isLogin": {
       "get": {
         "summary": "is Login to WhatsApp?",
-        "description": "Si no esta vinculado a WhatsApp retorna un false,y un codigo en BASE64 con el qr para vincular un telefono, si ya se encuentra logeado  retorna un true",  
+        "description": "Si no esta vinculado a WhatsApp retorna un false,y un codigo en BASE64 con el qr para vincular un telefono, si ya se encuentra logeado  retorna un true",
         "responses": {
           "200": {
             "description": "Successful Login",
@@ -38,8 +38,8 @@
     "/api/qr": {
       "get": {
           "summary": "Show QR Code",
-         
-           "description": "Retorna un código QR para vincular un telefono",
+
+             "description": "Retorna un código QR para vincular un telefono",
           "responses": {
             "200": {
               "description": "QR Code",
@@ -74,7 +74,7 @@
                 },
                 "msg": {
                   "type": "string",
-                  "description": "Aca va el  mensaje en utf-8 se puede mandar emoji😜" 
+                  "description": "Aca va el  mensaje en utf-8 se puede mandar emoji😜"
                 }
               }
             }
@@ -85,7 +85,7 @@
             "value": {
               "phone": "584145057588@c.us",
               "msg" : "GENIAL!"
-          }
+            }
           }
         },
         "responses": {
@@ -192,9 +192,14 @@
       }
     },
     "api/limpiar/cache": {
-      "get":{
+      "get": {
         "summary": "Si la app se cuelga o no responde al hacer peticiones, puedes limpiar la cache ",
-        
+        "responses": {
+          "200": {
+            "description": "Cache limpiada exitosamente"
+          }
+        }
       }
     }
-  
+  }
+}
