@@ -17,6 +17,27 @@ const {
   const cronMessage = require("../services/cronMessage.js");
   
   
+
+
+  //Funcion para mostrar el código QR en HTML
+  const showQrCodeInHtml = async (req, res) => {
+    const qrCode = getQrCode(); // Obtenemos el QR generado
+    if (qrCode) {
+      // Genera una imagen SVG del código QR y la envía como respuesta
+      const QRCode = require('qrcode');
+      QRCode.toDataURL(qrCode, (err, url) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).send('Error al generar el código QR');
+        }
+        res.send(`<img src="${url}" alt="QR Code">`);
+      });
+    } else {
+      res.send('El código QR aún no se ha generado. Por favor, espera...');
+    }
+  };
+
+
   
   
   // Función que retorna el QR en base64 si está disponible
@@ -260,6 +281,6 @@ const {
   };
   
   
-  module.exports = { login, sendMessage, removeCache, listWsGroup ,listWsParticipants, loteriaMedellin ,mensajeTemplate, crearNuevoTemplate, mensajeProgramado, echoMessage};
+  module.exports = { login, sendMessage, removeCache, listWsGroup ,listWsParticipants, loteriaMedellin ,mensajeTemplate, crearNuevoTemplate, mensajeProgramado, echoMessage, showQrCodeInHtml};
   
   
