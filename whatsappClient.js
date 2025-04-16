@@ -50,7 +50,9 @@ const initializeWhatsAppClient = () => {
     console.log(`Número: ${senderNumber} - Mensaje: ${msg.body}`);
 
     // **Enviar datos a la API externa**
-    const apiUrl = process.env.API_URL; // Obtiene la URL de la API desde las variables de entorno
+    const apiUrl = process.env.API_SERVICE_URL; // Obtiene la URL de la API desde las variables de entorno
+
+  
 
     if (!apiUrl) {
       console.error('Error: La variable de entorno API_URL no está definida en el archivo .env');
@@ -62,14 +64,31 @@ const initializeWhatsAppClient = () => {
         phone: senderNumber,
         msg: msg.body
       });
-      console.log('Datos enviados a la API con éxito:', response.data); // Opcional: Log de la respuesta de la API
+      
+      const respuesta_servidor = await response.data;
+      //responder el mensaje
+      console.log(respuesta_servidor);
+     //recorremos el array del repsuesta del ser
+     let respuesta = null;
+     //**
+     // Nota:el método join() de los arrays
+     // en JavaScript. Este método une todos los elementos de un array en una cadena,
+     //  utilizando un separador especificado. En tu caso, el separador que quieres es el salto de línea (\n).
+     //  */
+     if (respuesta_servidor && respuesta_servidor.msg && Array.isArray(respuesta_servidor.msg)) {
+      respuesta = respuesta_servidor.msg.join('\n');
+    } else {
+      respuesta = "La estructura de respuesta_servidor.msg no es la esperada.";
+    }
+
+    // enviamos respuesta al cliente
+     msg.reply(respuesta);
+
     } catch (error) {
       console.error('Error al enviar datos a la API:', error);
     }
 
-    if (msg.body == 'REPOLLA') {
-      msg.reply('pong');
-    }
+  
   });
 
 
