@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    *{
+      box-sizing: border-box;
+      font-family: system-ui
+    }
+    .img-container {
+      display: absolute;
+      width: 50vw;
+      height: 100vh;
+      background-image: url('4498897.jpg');
+      background-size: contain;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    h1{
+      text-align: center;
+    }
+    p{
+      text-align: center;
+    }
+    section{
+     
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-evenly;
+    }
+
+    form {
+  background-color: #f8f9fa; /* Un gris muy claro para el fondo del formulario */
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24); /* Sutil sombra */
+  margin-bottom: 20px; /* Espacio inferior para separar de otros elementos */
+}
+
+div {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block; /* Para que la etiqueta ocupe toda la línea */
+  font-size: 0.9em;
+  color: #5f6368; /* Gris para la etiqueta */
+  margin-bottom: 5px;
+}
+
+input[type="password"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #d2d2d2; /* Borde gris claro */
+  border-radius: 4px;
+  font-size: 1em;
+  color: #202124; /* Gris oscuro para el texto */
+  background-color: #fff; /* Fondo blanco del input */
+  box-sizing: border-box; /* Para que el padding no aumente el ancho total */
+}
+
+input[type="password"]:focus {
+  outline: none; /* Elimina el borde de enfoque predeterminado del navegador */
+  border-color: #4285f4; /* Azul de Google al enfocar */
+  box-shadow: 0 1px 3px rgba(66, 133, 244, 0.3); /* Sutil sombra azul al enfocar */
+}
+
+button[type="submit"] {
+  background-color: #4285f4; /* Azul de Google para el botón */
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background-color 0.3s ease; /* Transición suave al pasar el ratón */
+}
+
+button[type="submit"]:hover {
+  background-color: #357ae8; /* Azul más oscuro al pasar el ratón */
+}
+
+button[type="submit"]:focus {
+  outline: none;
+  box-shadow: 0 1px 3px rgba(66, 133, 244, 0.5); /* Sombra de enfoque para el botón */
+}
+  </style>
+  <title>Acceso a la API</title>
+</head>
+<body>
+  <h1>Bienvenido a la API que controla el bot de whatsapp</h1>
+  <p>Ingrese la clave de acceso para continuar
+    y poder acceder a las rutas de la api,
+    Recuerda que puedes ver toda la documenacion
+    <a href="/doc">Aqui</a>
+  </p>
+
+  <section>
+
+    <div class="img-container" >
+
+    </div>
+    <form action="/verificar-clave" method="post">
+  
+      <div>
+        <label for="clave">Ingrese la clave de seguridad para hacer peticones a la api:</label>
+        <input type="password" id="clave" name="clave" required>
+      </div>
+      <button type="submit">Enviar clave</button>
+    </form>
+  </section>
+
+</body>
+</html>
