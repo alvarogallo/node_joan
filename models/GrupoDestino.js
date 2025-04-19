@@ -1,5 +1,5 @@
 // models/grupoDestino.js
-const knex = require('knex')(require('../knexFile').development);
+const knex = require('knex')(require('../knexfile').development);
 
 class GrupoDestino {
   static async getAll() {

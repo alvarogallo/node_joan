@@ -3,7 +3,7 @@ module.exports = {
     development: {
       client: 'sqlite3',
       connection: {
-        filename: './mensajes.db' // La misma ruta que usaste antes
+        filename: './db/Database.db' 
       },
       useNullAsDefault: true, // Necesario para SQLite
       migrations: {

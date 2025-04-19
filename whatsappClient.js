@@ -1,5 +1,7 @@
 const { Client, LocalAuth } = require("whatsapp-web.js");
 const qrcode = require("qrcode-terminal");
+const handleIncomingMessage = require("./services/messageProcessorService"); 
+
 let sessionIniciada = false; // Estado de la sesión
 let qrCode = null; // Guardar el código QR generado
 let client; // Variable para almacenar la instancia del cliente
@@ -37,62 +39,14 @@ const initializeWhatsAppClient = () => {
 
   });
 
-  
-  client.on("message", async (msg) => {
-    let senderNumber;
 
-    if (msg.author) {
-      senderNumber = msg.author.split('@')[0];
-    } else {
-      senderNumber = msg.from.split('@')[0];
-    }
+ 
 
-    console.log(`Número: ${senderNumber} - Mensaje: ${msg.body}`);
-
-    // **Enviar datos a la API externa**
-    const apiUrl = process.env.API_SERVICE_URL; // Obtiene la URL de la API desde las variables de entorno
-
-  
-
-    if (!apiUrl) {
-      console.error('Error: La variable de entorno API_URL no está definida en el archivo .env');
-      return; // Detiene la ejecución si la URL no está configurada
-    }
-
-    try {
-      const response = await axios.post(apiUrl, {
-        phone: senderNumber,
-        msg: msg.body
-      });
-      
-      const respuesta_servidor = await response.data;
-      //responder el mensaje
-      console.log(respuesta_servidor);
-     //recorremos el array del repsuesta del ser
-     let respuesta = null;
-     //**
-     // Nota:el método join() de los arrays
-     // en JavaScript. Este método une todos los elementos de un array en una cadena,
-     //  utilizando un separador especificado. En tu caso, el separador que quieres es el salto de línea (\n).
-     //  */
-     if (respuesta_servidor && respuesta_servidor.msg && Array.isArray(respuesta_servidor.msg)) {
-      respuesta = respuesta_servidor.msg.join('\n');
-    } else {
-      respuesta = "La estructura de respuesta_servidor.msg no es la esperada.";
-    }
-
-    // enviamos respuesta al cliente
-     msg.reply(respuesta);
-
-    } catch (error) {
-      console.error('Error al enviar datos a la API:', error);
-    }
-
-  
-  });
+  // Eventos de mensajes entrantes, Se dispara el servico que maneja los mensajes entrantes 
+  client.on("message", handleIncomingMessage);
 
 
-  
+
   client.initialize(); // Iniciamos el cliente
 };
 

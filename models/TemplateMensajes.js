@@ -1,5 +1,5 @@
 // models/TemplateMensaje.js
-const knex = require('knex')(require('../knexFile').development); // Importa la configuración de Knex
+const knex = require('knex')(require('../knexfile').development); // Importa la configuración de Knex
 
 class TemplateMensajes {
   static async getAll() {
