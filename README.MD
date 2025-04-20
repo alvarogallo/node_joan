@@ -55,33 +55,23 @@ Esta API permite interactuar con WhatsApp utilizando la librería `whatsapp-web.
 ## Configuración
 
 1.  Asegúrate de tener [Node.js](https://nodejs.org/) y [npm](https://www.npmjs.com/) instalados.
-2.  Clona el repositorio o crea un nuevo proyecto e instala las dependencias:
+2.  Clona el repositorio o crea un nuevo proyecto y dentro de la raiz del proyecto ejecuta:
     ```bash
-    npm install whatsapp-web.js qrcode qrcode-terminal express node-cron knex sqlite3 --save
-    # o
-    yarn add whatsapp-web.js qrcode qrcode-terminal express node-cron knex sqlite3
+    npm install
     ```
-3.  Configura la base de datos SQLite y Knex.js (ver archivo `knexfile.js`).
-4.  Ejecuta las migraciones de la base de datos para crear las tablas:
+3. prepara la base de datos con el comando:
     ```bash
-    npx knex migrate:latest --knexfile knexfile.js
+    npm run db:prepare
     ```
-5.  Opcionalmente, ejecuta las semillas para poblar la base de datos con datos iniciales:
+4.  Ejecuta el servidor con el comando: 
     ```bash
-    npx knex seed:run --knexfile knexfile.js
+    npm run dev
     ```
-
-## Uso
-
-1.  Inicia el servidor: `npm start` o `node index.js`.
-2.  Utiliza una herramienta como Postman o curl para interactuar con los endpoints.
-3.  No olvides correr las migraciones y semillas para actualizar la base de datos.
-
 ## Notas Adicionales
 
 * La sesión de WhatsApp se gestiona utilizando `whatsapp-web.js` con autenticación local.
 * Los mensajes programados se ejecutan cada 2 minutos (configurable en `services/cronService.js`).
-* La lista de grupos para los mensajes programados se gestiona a través de la tabla `grupos_destino` en la base de datos, accesible mediante los endpoints `/groups`.
+* La lista de grupos para los mensajes programados se gestiona a través de la tabla `grupos_destino` en la base de datos, accesible mediante los endpoints `/grupos`.
 * Las plantillas de mensajes se almacenan en la tabla `templateMensajes` y se gestionan mediante los endpoints `/templates` y `/templates/new`.
 * Se utiliza un servicio de scraping (`scraperService`) para obtener el número ganador de la lotería de Medellín.
 * La lógica para el envío de mensajes de WhatsApp se encuentra en `whatsappClient.js`.

@@ -9,12 +9,14 @@ const {
 
 const { obtenerNumeroGanadorLoteriaMedellin } = require("../services/scraperSites.js");
 const { getAll, getByName, create } = require("../models/TemplateMensajes.js");
+const Grupos = require("../models/Grupos.js");
 const reemplazarPlaceholders = require("../utils/remplazarPlaceholders.js");
 const qrcode = require("qrcode");
 const fs = require("fs/promises");
 const { validarNumeroTelefonico } = require("../utils/dataValidation.js");
 //IMPORTANTE IMPORTANDO EL CRON JOB PARA LOS MENSAJES PROGRAMADOS
 const cronMessage = require("../services/cronMessage.js");
+const { Console } = require("console");
 
 
 
@@ -146,33 +148,41 @@ const removeCache = async (req, res) => {
     });
   }
 };
-let cachedGroups = null;
 
-// funcion para sacar la lista de grupos de whatsapp de un cliente. retorna una array con los nombres de los grupos.
+
 const listWsGroup = async (req, res) => {
   if (isSessionIniciada()) {
-    if (cachedGroups) {
-      console.log("Sirviendo grupos desde la caché");
-      return res.send(cachedGroups);
+
+    const gruposEnDB = await Grupos.getAll();
+  
+    if (gruposEnDB.length > 0) {
+      return res.send(gruposEnDB);
     }
+  
     const client = getClient();
     console.log("Obteniendo todos los chats desde WhatsApp");
     const chats = await client.getChats();
     console.log("Filtrando solo los grupos");
     const groups = chats.filter(chat => chat.isGroup);
+    //Lista de todos los grupos ya filtrados con su nombre
     const groupNames = groups.map(group => ({ name: group.name, wid: group.id._serialized }));
+    // Almacenar en la base de datos iterando sobre el array
+    try {
+      for (const grupo of groupNames) {
+        await Grupos.create(grupo.name, grupo.wid); // Llama al método estático en la clase
+      }
+      console.log("Grupos almacenados en la base de datos");
+      res.send(groupNames);
 
-    // Almacenar en caché los grupos
-    cachedGroups = groupNames;
-    console.log("Grupos cacheados");
-
-    res.send(groupNames);
+    } catch (error) {
+      console.error("Error al almacenar los grupos en la base de datos:", error);
+      res.status(500).send({ success: false, message: "Error al guardar los grupos." });
+    }
 
   } else {
     res.status(400).send({ success: false, message: "Sesión de WhatsApp no iniciada." });
   }
 };
-
 
 
 //recibe un string con el nombre del grupo y retorna un arreglo con los numeros de telefono de cada participante.
