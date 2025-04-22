@@ -10,6 +10,7 @@ const {
 const { obtenerNumeroGanadorLoteriaMedellin } = require("../services/scraperSites.js");
 const { getAll, getByName, create } = require("../models/TemplateMensajes.js");
 const Grupos = require("../models/Grupos.js");
+const GrupoDestino = require("../models/GrupoDestino.js");
 const reemplazarPlaceholders = require("../utils/remplazarPlaceholders.js");
 const qrcode = require("qrcode");
 const fs = require("fs/promises");
@@ -298,6 +299,17 @@ const mensajeProgramado = async (req, res) => {
   }
 };
 
+//funcion para obtener los grupos de destino
+const listaGruposDestino = async (req, res) => {
+  try {
+    //grupos destinos
+    const gruposEnDB = await GrupoDestino.getAll();
+    res.send(gruposEnDB);
+  } catch (error) {
+    console.error("Error al obtener los grupos de destino:", error);
+    res.status(500).send({ success: false, message: "Error al obtener los grupos de destino." });
+  }
+};
 
-module.exports = { login, sendMessage, removeCache, listWsGroup, listWsParticipants, loteriaMedellin, mensajeTemplate, crearNuevoTemplate, mensajeProgramado, echoMessage, showQrCodeInHtml };
+module.exports = { login, sendMessage, removeCache, listWsGroup, listWsParticipants, loteriaMedellin, mensajeTemplate, crearNuevoTemplate, mensajeProgramado, echoMessage, showQrCodeInHtml, listaGruposDestino };
 
