@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "node --watch index.js",
     "start": "node index.js",
+    "db:migrate": "npx knex migrate:latest",
+    "db:seed": "npx knex seed:run",
+    "db:prepare": "npm run db:migrate && npm run db:seed",
     "build": "electron-builder build --win --mac --linux"
   },
   "author": "joan",

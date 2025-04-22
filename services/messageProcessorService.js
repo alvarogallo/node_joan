@@ -33,7 +33,7 @@ require('dotenv').config(); // Carga las variables de entorno desde el archivo .
       const apiUrl = process.env.API_SERVICE_URL;
       if (!apiUrl) {
         console.error('URL de la API externa no configurada.');
-        msg.reply("Lo siento, no puedo procesar tu solicitud en este momento. Estamos trabajando en ello.");
+        //msg.reply("Lo siento, no puedo procesar tu solicitud en este momento. Estamos trabajando en ello.");
         return; // Detiene la ejecución
       }
 
