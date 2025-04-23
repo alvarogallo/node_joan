@@ -1,9 +1,9 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "API para configurar el bot de WhatsApp, NOTA: Se requiere de una clave secreta para poder hacer peticiones a las rutas.",
+    "title": "API para gestionar el bot de WhatsApp",
     "version": "1.0.0",
-    "description": "API para enviar mensajes por WhatsApp usando WhatsApp Web JS, enviar mensajes a grupos y obtener los numeros de telefono de cada participante de un grupo.",
+    "description": "API para interactuar con WhatsApp usando whatsapp-web.js. Permite verificar estado de conexión, obtener QR, enviar mensajes a individuos y grupos, gestionar grupos (listar, obtener participantes, crear), gestionar plantillas de mensajes y programar envíos.",
     "contact": {
       "name": "Joan",
       "email": "joangabriel684@gmail.com"
@@ -11,167 +11,656 @@
   },
   "host": "localhost:6969",
   "basePath": "/api",
-  "schemes": ["http"],
-  "consumes": ["application/json"],
-  "produces": ["application/json"],
+  "schemes": [
+    "http"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "securityDefinitions": {
+    "secretKey": {
+      "type": "apiKey",
+      "name": "X-Secret-Key",
+      "in": "header",
+      "description": "Clave secreta requerida para acceder a la API. Incluir en el encabezado X-Secret-Key."
+    }
+  },
+  "security": [
+    {
+      "secretKey": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Autenticación y Estado",
+      "description": "Rutas relacionadas con la conexión y autenticación del bot de WhatsApp."
+    },
+    {
+      "name": "Mensajes",
+      "description": "Rutas para enviar y gestionar mensajes."
+    },
+    {
+      "name": "Grupos",
+      "description": "Rutas para gestionar chats de grupo."
+    },
+    {
+      "name": "Plantillas",
+      "description": "Rutas para gestionar plantillas de mensajes."
+    },
+    {
+      "name": "Utilidades",
+      "description": "Rutas para tareas de mantenimiento o prueba."
+    }
+  ],
   "paths": {
-    "/api/isLogin": {
+    "/isLogin": {
       "get": {
-        "summary": "is Login to WhatsApp?",
-        "description": "Si no esta vinculado a WhatsApp retorna un false,y un codigo en BASE64 con el qr para vincular un telefono, si ya se encuentra logeado  retorna un true",
+        "tags": [
+          "Autenticación y Estado"
+        ],
+        "summary": "¿Está el bot conectado a WhatsApp?",
+        "description": "Verifica el estado actual de la conexión del bot a WhatsApp Web. Retorna `true` si está conectado, o `false` y potencialmente información para escanear el QR si no lo está.",
         "responses": {
           "200": {
-            "description": "Successful Login",
+            "description": "Estado de la conexión",
             "schema": {
               "type": "object",
               "properties": {
                 "login": {
                   "type": "boolean",
-                  "description": "Si se escanea con exito el whastapp del cliente muestra un login true"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/qr": {
-      "get": {
-          "summary": "Show QR Code",
-
-             "description": "Retorna un código QR para vincular un telefono",
-          "responses": {
-            "200": {
-              "description": "QR Code",
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "qr": {
-                    "type": "string",
-                    "description": "Código QR en BASE64"
-                  }
-                }
-              }
-            }
-          }
-        }
-    },
-    "/api/enviar/mensaje": {
-      "post": {
-        "summary": "Permite enviar un mensaje a un grupo o a un número de telefono",
-        "description": "Requiere del phone (que es el wid) y el msg pasados por el body de la peticion",
-        "parameters": [
-          {
-            "name": "Enviar mensaje",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "phone": {
-                  "type": "string",
-                  "description": "Este es el numero de telefono mas unos caracteres especiales, ejmplo: 584245682930@c.us"
+                  "description": "Indica si el bot está actualmente logeado en WhatsApp Web."
                 },
-                "msg": {
+                "qr": {
                   "type": "string",
-                  "description": "Aca va el  mensaje en utf-8 se puede mandar emoji😜"
-                }
-              }
-            }
-          }
-        ],
-        "Example.json": {
-          "Ejemplo": {
-            "value": {
-              "phone": "584145057588@c.us",
-              "msg" : "GENIAL!"
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Mensaje enviado",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "success": {
-                  "type": "boolean",
-                  "description": "Indica que el mensaje fue enviado!"
+                  "description": "Código QR en formato BASE64 si el bot no está logeado y está esperando conexión. Ausente si login es true.",
+                  "nullable": true
                 },
                 "message": {
                   "type": "string",
-                  "description": "Mensaje de éxito"
+                  "description": "Mensaje adicional sobre el estado (ej. 'Client is ready', 'Client isn't ready')",
+                  "nullable": true
                 }
               }
             }
           },
           "500": {
-            "description": "internal Server Error",
+            "$ref": "#/definitions/ErrorResponse"
+          }
+        }
+      }
+    },
+    "/qr": {
+      "get": {
+        "tags": [
+          "Autenticación y Estado"
+        ],
+        "summary": "Obtener código QR para conectar el bot",
+        "description": "Retorna el código QR necesario para vincular el bot con un teléfono, en formato BASE64. Solo funciona si el bot no está logeado y está en el estado de generación de QR.",
+        "responses": {
+          "200": {
+            "description": "Código QR",
             "schema": {
               "type": "object",
               "properties": {
-                "success": {
-                  "type": "boolean",
-                  "description": "indica que algo salio mal"
-                },
-                "message": {
+                "qr": {
                   "type": "string",
-                  "description": "Mensaje que describe el error"
+                  "description": "Código QR en formato BASE64. Utilizar para escanear con el teléfono."
                 }
               }
             }
           },
-          "403": {
-            "description": "Forbidden",
+          "400": {
+            "description": "El bot no está en estado de generación de QR.",
             "schema": {
-              "type": "object",
-              "properties": {
-                "success": {
-                  "type": "boolean",
-                  "description": "Indica que no estas autorizado a aceder al recurso"
-                },
-                "message": {
-                  "type": "string",
-                  "description": "Debes estar autorizado para usar estas funciones"
-                }
-              }
+              "$ref": "#/definitions/ErrorResponse"
             }
+          },
+          "500": {
+            "$ref": "#/definitions/ErrorResponse"
           }
         }
       }
     },
-    "api/grupos": {
-      "get": {
-        "summary": "Get Groups",
-        "description": "Retorna  un array con los nombres de los grupos del cliente",
-        "responses": {
-          "200": {
-            "description": "Array con una lista de strings con los nombres de los grupos",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      }
-    },
-    "api/grupo/participantes": {
+    "/enviar/mensaje": {
       "post": {
-        "summary": "envias un nombre de grupo por el cuerpo del request, y te retorna un array con los numeros de telefono de cada participante.",
-        "description": "Recibe un string con el nombre del grupo y retorna un arreglo con los numeros de telefono de cada participante.",
+        "tags": [
+          "Mensajes"
+        ],
+        "summary": "Enviar un mensaje",
+        "description": "Permite enviar un mensaje de texto a un chat individual o grupal específico.",
         "parameters": [
           {
-            "name": "groupName",
+            "name": "messageDetails",
             "in": "body",
+            "description": "Detalles del mensaje a enviar.",
             "required": true,
             "schema": {
               "type": "object",
+              "required": [
+                "phone",
+                "msg"
+              ],
+              "properties": {
+                "phone": {
+                  "type": "string",
+                  "description": "El ID del chat de destino. Puede ser el número de teléfono con '@c.us' (ej: 584141234567@c.us) o el ID de grupo con '@g.us' (ej: 120363123456789012@g.us)."
+                },
+                "msg": {
+                  "type": "string",
+                  "description": "El contenido del mensaje de texto. Soporta Emojis."
+                }
+              },
+              "example": {
+                "phone": "584145057588@c.us",
+                "msg": "¡Hola desde la API! 😎"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Mensaje enviado exitosamente.",
+            "schema": {
+              "$ref": "#/definitions/SuccessResponse"
+            }
+          },
+          "401": {
+            "description": "No autorizado (clave secreta inválida o no proporcionada).",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "description": "Descripción del error de autenticación o autorización. (Ej: 'Token no encontrado', 'Clave inválida')."
+                }
+              },
+              "required": [
+                "message"
+              ]
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor al intentar procesar la petición.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/grupos": {
+      "get": {
+        "tags": [
+          "Grupos"
+        ],
+        "summary": "Listar todos los chats de grupo",
+        "description": "Retorna un array con los nombres de todos los chats grupales a los que pertenece el bot. Solo incluye chats tipo grupo.",
+        "responses": {
+          "200": {
+            "description": "Lista de nombres de grupos.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "description": "Nombre de un grupo."
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado (clave secreta inválida).",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "403": {
+            "description": "Prohibido (el bot no está conectado).",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor al listar grupos.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/grupos/destinos": {
+      "get": {
+        "tags": [
+          "Grupos"
+        ],
+        "summary": "Listar grupos de destino configurados",
+        "description": "Retorna la lista de grupos pre-configurados como 'grupos de destino' para envíos masivos o programados. (Asumiendo que tienes una lista interna de estos grupos).",
+        "responses": {
+          "200": {
+            "description": "Lista de grupos de destino.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "ID del grupo (ej: 120363123456789012@g.us)"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "Nombre del grupo"
+                  },
+                  "alias": {
+                    "type": "string",
+                    "description": "Alias o nombre corto configurado"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado (clave secreta inválida).",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "403": {
+            "description": "Prohibido (el bot no está conectado o no tienes permisos).",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor al listar grupos de destino.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Grupos"
+        ],
+        "summary": "Crear/Configurar un grupo de destino",
+        "description": "Configura un chat de grupo como un grupo de destino, asociando un alias o nombre corto a su ID. Útil para envíos programados.",
+        "parameters": [
+          {
+            "name": "groupDetails",
+            "in": "body",
+            "description": "Detalles del grupo de destino a configurar.",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "groupId",
+                "alias"
+              ],
+              "properties": {
+                "groupId": {
+                  "type": "string",
+                  "description": "El ID del chat de grupo con '@g.us' (ej: 120363123456789012@g.us)."
+                },
+                "alias": {
+                  "type": "string",
+                  "description": "Un alias o nombre corto para identificar este grupo de destino."
+                }
+              },
+              "example": {
+                "groupId": "120363123456789012@g.us",
+                "alias": "GrupoDePrueba"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Grupo de destino configurado exitosamente.",
+            "schema": {
+              "$ref": "#/definitions/SuccessResponse"
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida (falta groupId o alias).",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "No autorizado (clave secreta inválida).",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "403": {
+            "description": "Prohibido (el bot no está conectado o no tienes permisos).",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor al configurar el grupo de destino.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/grupo/participantes": {
+      "post": {
+        "tags": [
+          "Grupos"
+        ],
+        "summary": "Obtener participantes de un grupo por nombre",
+        "description": "Recibe el nombre de un grupo y retorna un array con los números de teléfono (IDs serializados) de cada participante de ese grupo.",
+        "parameters": [
+          {
+            "name": "groupNameDetails",
+            "in": "body",
+            "description": "Nombre del grupo para listar participantes.",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "groupName"
+              ],
               "properties": {
                 "groupName": {
                   "type": "string",
-                  "description": "Nombre del grupo que deseas obtener los numeros de telefono de cada participante."
+                  "description": "El nombre exacto del grupo."
+                }
+              },
+              "example": {
+                "groupName": "Mi Grupo Importante"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array con los IDs serializados de los participantes.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "description": "ID serializado de un participante (ej: 584141234567@c.us)."
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida (falta groupName).",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "No autorizado (clave secreta inválida).",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "403": {
+            "description": "Prohibido (el bot no está conectado o no pertenece al grupo).",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Grupo no encontrado con el nombre proporcionado.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor al obtener participantes.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/clearCache": {
+      "get": {
+        "tags": [
+          "Utilidades"
+        ],
+        "summary": "Limpiar caché de la sesión del bot",
+        "description": "Intenta limpiar la caché interna de la sesión de WhatsApp Web JS. Puede ayudar si el bot se comporta de forma inesperada o si las listas de chats/contactos no se actualizan.",
+        "responses": {
+          "200": {
+            "description": "Caché limpiada exitosamente.",
+            "schema": {
+              "$ref": "#/definitions/SuccessResponse"
+            }
+          },
+          "401": {
+            "description": "No autorizado (clave secreta inválida).",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "403": {
+            "description": "Prohibido (el bot no está conectado).",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor al intentar limpiar la caché.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/loteriaMedellin": {
+      "get": {
+        "tags": [
+          "Mensajes"
+        ],
+        "summary": "Obtener y formatear el resultado de la Lotería de Medellín",
+        "description": "Esta ruta realiza scraping en el sitio web oficial de la Lotería de Medellín para obtener el número ganador y la fecha del último sorteo. Luego, busca una plantilla de mensaje por el nombre proporcionado (o una por defecto) y reemplaza los placeholders '{numero}' y '{fecha}' con los datos obtenidos. Finalmente, retorna el mensaje formateado como texto.",
+        "parameters": [
+          {
+            "name": "mensaje",
+            "in": "query",
+            "description": "Nombre de la plantilla de mensaje a utilizar para formatear el resultado. Si se omite, se intentará usar una plantilla por defecto ('MensajePorDefecto' o similar).",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resultado de la lotería formateado en una plantilla de mensaje.",
+            "schema": {
+              "type": "string",
+              "description": "El mensaje de texto final con el número y fecha de la lotería."
+            },
+            "examples": {
+              "text/plain": "El numero ganador de la Loteria de Medellin del [FechaDelSorteo] es [NumeroGanador]" 
+            }
+          },
+          "401": {
+            "description": "No autorizado (clave secreta inválida o no proporcionada).",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "description": "Descripción del error de autenticación."
+                }
+              },
+              "required": [
+                "message"
+              ]
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor al obtener el resultado de la lotería (ej: fallo de scraping, plantilla no encontrada).",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse" 
+            }
+          }
+        }
+      }
+    },
+    "/mensajes/plantillas": {
+      "get": {
+        "tags": [
+          "Plantillas"
+        ],
+        "summary": "Listar plantillas de mensajes disponibles",
+        "description": "Retorna la lista de plantillas de mensajes pre-configuradas o guardadas.",
+        "responses": {
+          "200": {
+            "description": "Lista de plantillas.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado (clave secreta inválida).",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor al listar plantillas.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/mensajes/plantillas-crear": {
+      "post": {
+        "tags": [
+          "Plantillas"
+        ],
+        "summary": "Crear una nueva plantilla de mensaje",
+        "description": "Permite guardar una nueva plantilla de mensaje para su uso posterior.",
+        "parameters": [
+          {
+            "name": "templateDetails",
+            "in": "body",
+            "description": "Detalles de la nueva plantilla.",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "name",
+                "content"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Nombre único para identificar la plantilla."
+                },
+                "content": {
+                  "type": "string",
+                  "description": "El contenido del mensaje de la plantilla. Soporta variables si tu handler lo implementa."
+                }
+              },
+              "example": {
+                "name": "SaludoCliente",
+                "content": "¡Hola {cliente}! Gracias por contactarnos."
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Plantilla creada exitosamente.",
+            "schema": {
+              "$ref": "#/definitions/SuccessResponse"
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida (falta name o content).",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "No autorizado (clave secreta inválida).",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor al crear la plantilla.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/mensajesProgramados/activar": {
+      "post": {
+        "tags": [
+          "Mensajes"
+        ],
+        "summary": "EN PROCESO DE DESARROLLO proximamente...",
+        "description": "Esta ruta gestiona el envío de mensajes de forma programada o masiva, utilizando plantillas y grupos de destino pre-configurados., para cada grupo. debe haber una lista de mensajes prestablecidos a enviar peridodicamente",
+        "parameters": [
+          {
+            "name": "scheduledMessageDetails",
+            "in": "body",
+            "description": "Detalles del mensaje programado/masivo.",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "templateName",
+                "destinationAlias"
+              ],
+              "properties": {
+                "templateName": {
+                  "type": "string",
+                  "description": "El nombre de la plantilla de mensaje a usar."
+                },
+                "destinationAlias": {
+                  "type": "string",
+                  "description": "El alias del grupo de destino pre-configurado."
+                },
+                "scheduleTime": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "(Opcional) Hora a la que el mensaje debe ser enviado. Si se omite, enviar inmediatamente."
+                },
+                "variables": {
+                  "type": "object",
+                  "description": "(Opcional) Variables para reemplazar en la plantilla (ej: {cliente: 'Juan'})."
+                }
+              },
+              "example": {
+                "templateName": "PromocionSemanal",
+                "destinationAlias": "ClientesVIP",
+                "scheduleTime": "2025-04-24T10:00:00Z",
+                "variables": {
+                  "producto": "Oferta Especial"
                 }
               }
             }
@@ -179,25 +668,77 @@
         ],
         "responses": {
           "200": {
-            "description": "Array con los números de teléfono de cada participante.",
+            "description": "Envío programado/masivo aceptado.",
             "schema": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "description": "Número de teléfono de cada participante"
-              }
+              "$ref": "#/definitions/SuccessResponse"
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida (falta plantilla o destino, alias no encontrado, formato de hora inválido).",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "No autorizado (clave secreta inválida).",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "403": {
+            "description": "Prohibido (el bot no está conectado o no tienes permisos).",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Plantilla o grupo de destino no encontrado.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor al programar/enviar el mensaje.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
             }
           }
         }
       }
+    }
+  },
+  "definitions": {
+    "ErrorResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "description": "Siempre false para respuestas de error."
+        },
+        "message": {
+          "type": "string",
+          "description": "Descripción del error."
+        },
+        "error": {
+          "type": "object",
+          "description": "Detalles técnicos del error (opcional). Puede venir o no..."
+        }
+      }
     },
-    "api/limpiar/cache": {
-      "get": {
-        "summary": "Si la app se cuelga o no responde al hacer peticiones, puedes limpiar la cache ",
-        "responses": {
-          "200": {
-            "description": "Cache limpiada exitosamente"
-          }
+    "SuccessResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "description": "Siempre true para respuestas exitosas."
+        },
+        "message": {
+          "type": "string",
+          "description": "Mensaje de éxito."
+        },
+        "data": {
+          "type": "object",
+          "description": "Datos adicionales retornados por la ruta (opcional, la estructura varía)."
         }
       }
     }

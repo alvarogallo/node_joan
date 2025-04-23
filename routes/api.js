@@ -19,6 +19,6 @@ router.post("/grupos/destinos", crearGrupoDestino);
 
 
 router.post("/mensajes/plantillas-crear", crearNuevoTemplate);
-router.post("/enviar", mensajeProgramado);
+router.post("/mensajesProgramados/activar", mensajeProgramado);
 
 module.exports = router;
