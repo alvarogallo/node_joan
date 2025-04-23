@@ -103,7 +103,7 @@ const sendMessage = async (req, res) => {
       console.error("Error al enviar mensaje: ", error);
       res
         .status(500)
-        .send({ success: false, message: "Error al enviar mensaje." });
+        .send({ success: false, message: error.message });
     }
   } else {
     res
@@ -311,5 +311,20 @@ const listaGruposDestino = async (req, res) => {
   }
 };
 
-module.exports = { login, sendMessage, removeCache, listWsGroup, listWsParticipants, loteriaMedellin, mensajeTemplate, crearNuevoTemplate, mensajeProgramado, echoMessage, showQrCodeInHtml, listaGruposDestino };
+//funcion para crear un grupo de destino
+const crearGrupoDestino = async (req, res) => {
+  try {
+    //extraer los datos del request
+    const { nombre, wid } = req.body;
+    //guardar el mensaje en la base de datos
+    const idNewGrupo = await GrupoDestino.create(nombre, wid);
+    //enviar el id del mensaje creado
+    res.send(idNewGrupo[0]);
+  } catch (error) {
+    console.error("Error al guardar el mensaje de un template:", error);
+    res.status(500).send({ success: false, message: "Error al guardar el mensaje de un template." });
+  }
+};
+
+module.exports = { login, sendMessage, removeCache, listWsGroup, listWsParticipants, loteriaMedellin, mensajeTemplate, crearNuevoTemplate, mensajeProgramado, echoMessage, showQrCodeInHtml, listaGruposDestino,crearGrupoDestino };
 

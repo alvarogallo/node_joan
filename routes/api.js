@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { login, sendMessage, removeCache ,listWsGroup, listWsParticipants , loteriaMedellin , mensajeTemplate , crearNuevoTemplate, mensajeProgramado , echoMessage , showQrCodeInHtml, listaGruposDestino}  = require("../controllers"); // Importa los handlers de las rutas
+const { login, sendMessage, removeCache ,listWsGroup, listWsParticipants , loteriaMedellin , mensajeTemplate , crearNuevoTemplate, mensajeProgramado , echoMessage , showQrCodeInHtml, listaGruposDestino, crearGrupoDestino}  = require("../controllers"); // Importa los handlers de las rutas
 
 // Definición de las rutas
 router.get("/isLogin", login);
@@ -15,6 +15,7 @@ router.get('/grupos/destinos', listaGruposDestino);
 router.post("/grupo/participantes" , listWsParticipants);
 router.post("/enviar/mensaje", sendMessage);
 router.post("/prueba", echoMessage); 
+router.post("/grupos/destinos", crearGrupoDestino);
 
 
 router.post("/mensajes/plantillas-crear", crearNuevoTemplate);
