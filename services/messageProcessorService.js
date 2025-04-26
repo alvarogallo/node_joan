@@ -1,9 +1,7 @@
 const { processApiResponse } = require("../utils/messageUtils");
-const fs = require('fs');
-const path = require('path');
+const { extraerTextoFromImg } = require('../utils/ocrService');
 const axios = require('axios'); // Importa la librería axios
 require('dotenv').config(); // Carga las variables de entorno desde el archivo .env
-
 
 
 // Función para llamar a la API externa
@@ -27,6 +25,14 @@ const callExternalApi = async (apiUrl, phone, msgBody) => {
 */
 const handleTextMessage = async (client, msg, senderInfo) => {
   try {
+
+    // El mensaje de texto esta dirigido al bot de natillera?
+    const commandPrefix = 'natibot';
+    if (!(msg._data.body.toLowerCase().includes(commandPrefix))) {
+      console.log("Mensaje de texto no dirigido al bot, no se procesa")
+      return
+    }
+
     // 1. Extraer información del remitente o la persona que nos escribió.
     const senderNumber = senderInfo.numero; // Obtenemos el número del objeto senderInfo
     console.log(`Número: ${senderNumber} - Mensaje: ${msg.body}`);
@@ -63,124 +69,123 @@ const handleTextMessage = async (client, msg, senderInfo) => {
 };
 
 
-// OJO funcion para detectar y procesar las imagenes que me llegan, estas imagenes se van a guardar en el directorio public/pagos
-// Luego se va a llamar a otro servicio externo para procesar esta imagen (FUTURO).
-// Nota: El nombre de la imagen se guarda con el formato pago_{identificador_serializado_del_remitente}_{nombre_del_remitente}.{extension}
-const handleImageMessage = async (client, msg, senderInfo) => { // Aceptar client, msg, Y senderInfo
-  console.log('¡Mensaje entrante detectado como IMAGEN! Activando la funcion handeleImageMessage');
+
+const handleImageMessage = async (client, msg, senderInfo) => {
+  const senderIdentifier = senderInfo?.nombre || senderInfo?.numero || 'Unknown Sender';
+  console.log(`¡Manejando mensaje de imagen! Activando handleImageMessage para ${senderIdentifier}.`);
+
+  let mediaData = null; // Variable para almacenar los datos del medio descargado
+
   try {
-    if (msg.hasMedia) {
-      console.log('El mensaje tiene datos de medios adjuntos. Descargando...');
-
-      const mediaData = await msg.downloadMedia();
-
-      if (mediaData) { // Verificar si la descarga fue exitosa
-        console.log('Datos de la imagen obtenidos.');
-        console.log('Tipo MIME:', mediaData.mimetype);
-        console.log('Nombre de archivo original (si disponible):', mediaData.filename || 'N/A');
-
-
-        // --- Código para GUARDAR la imagen ---
-
-        // Define el directorio donde guardarás los pagos
-        // Ajusta la ruta si este archivo está en un subdirectorio diferente a 'services'
-        const uploadDir = path.join(__dirname, '..', 'public', 'pagos');
-        if (!fs.existsSync(uploadDir)) {
-          console.log(`Creando directorio: ${uploadDir}`);
-          fs.mkdirSync(uploadDir, { recursive: true });
-        }
-
-        // 3. Genera un nombre de archivo USANDO LA INFORMACIÓN DE senderInfo (que ya viene del router)
-        const mimeType = mediaData.mimetype;
-        // Asegurarse de que mimeType y su split existan, aunque downloadMedia debería proveerlo
-        const fileExtension = mimeType && mimeType.split('/')[1] ? mimeType.split('/')[1] : 'bin';
-
-
-        // Usamos senderInfo.serializado y senderInfo.nombre que YA FUERON OBTENIDOS Y MANEJADOS por getSenderDetails
-        // Importante: getSenderDetails devuelve valores por defecto si no pudo obtenerlos.
-        // Aseguramos que sean strings antes de limpiarlos.
-        const senderSerialized = senderInfo?.serializado || 'UnknownSerialized'; // Usa fallback si serializado es null/undefined
-        const senderName = senderInfo?.nombre || 'UnknownUser'; // Usa fallback si nombre es null/undefined
-
-        // Limpiar los identificadores para nombres de archivo seguros
-        const cleanSenderSerialized = senderSerialized.replace(/[^a-zA-Z0-9_]/g, ''); // Permite _ después de fallback
-        const cleanSenderName = senderName.replace(/[^a-zA-Z0-9_]/g, ''); // Permite _ después de fallback
-
-        // Añadir un timestamp de fallback si el nombre queda vacío después de limpiar
-        const fallbackTimestamp = Date.now();
-        const finalSenderSerialized = cleanSenderSerialized || `no_serial_${fallbackTimestamp}`;
-        const finalSenderName = cleanSenderName || `no_name_${fallbackTimestamp}`;
-
-
-        // Formato del nombre: pago_{identificador_serializado_limpio}_{nombre_limpio}.{extension}
-        const filename = `pago_${finalSenderSerialized}_${finalSenderName}.${fileExtension}`;
-        const filePath = path.join(uploadDir, filename);
-
-        // 4. Convierte la string base64 a Buffer.
-        const imageBuffer = Buffer.from(mediaData.data, 'base64');
-
-        // 5. Escribe el archivo.
-        fs.writeFile(filePath, imageBuffer, async (err) => { // Usa async callback si vas a hacer await dentro
-          if (err) {
-            console.error('Error al guardar la imagen:', err);
-            // Optional: notify user...
-            // try { if (msg && typeof msg.reply === 'function') await msg.reply('Lo siento, hubo un error al guardar la imagen del pago.'); } catch(e) {}
-          } else {
-            console.log(`Imagen de pago guardada correctamente en: ${filePath}`);
-            // Optional: notify user...
-            // try { if (msg && typeof msg.reply === 'function') await msg.reply('¡Imagen de pago recibida y guardada para revisión!'); } catch(e) {}
-
-            // --- Aquí integrarías el OCR ---
-            console.log('\nProcesando imagen con OCR...');
-            try {
-              // Llama a tu función de OCR (ej: detectText) usando filePath o mediaData.data
-              // Asumiendo que tienes una función de OCR que acepta una ruta o base64
-              // const textoExtraido = await detectText(filePath); // o detectTextFromBase64(mediaData.data)
-
-              // console.log('Texto extraído por OCR:', textoExtraido);
-              // Optional: Reply with extracted text
-              // if (textoExtraido && msg && typeof msg.reply === 'function') { await msg.reply(`Texto en la imagen: ${textoExtraido}`); }
-            } catch (ocrError) {
-              console.error('Error durante el OCR:', ocrError);
-              // Optional: Notify user of OCR error
-              // try { if (msg && typeof msg.reply === 'function') await msg.reply('No pude leer el texto de la imagen.'); } catch(e) {}
-            }
-            // --- Fin integración OCR ---
-          }
-        });
-
-        // --- Fin del código para GUARDAR la imagen ---
-
-
-      } else {
-        console.log('Error: No se pudieron descargar los datos del medio.');
-        // Optional: notify user...
-        // try { if (msg && typeof msg.reply === 'function') await msg.reply('Lo siento, no pude descargar esta imagen.'); } catch(e) {}
-      }
-
-
-    } else {
-      console.log('Mensaje de imagen sin datos de medios inesperadamente.');
+    // 1. Verifica si el mensaje tiene datos de medios
+    if (!msg.hasMedia) {
+      console.log(`Imagen de ${senderIdentifier} sin datos de medios. Ignorando.`);
+      return;
     }
+
+    console.log(`Imagen de ${senderIdentifier} tiene datos de medios. Iniciando descarga a memoria...`);
+
+    // === 2. TRY...CATCH ESPECÍFICO PARA LA DESCARGA ===
+    // Intentamos descargar el medio. Si falla (ej: Error: write EOF), este catch lo atrapará.
+    try {
+      mediaData = await msg.downloadMedia();
+      console.log('Datos de la imagen obtenidos en memoria.');
+      // Usamos encadenamiento opcional para acceder a mimetype de forma segura
+      console.log('Tipo MIME:', mediaData?.mimetype);
+
+    } catch (downloadError) {
+      // Este catch debería atrapar errores de descarga como 'Error: write EOF'
+      console.error(`Error durante la descarga del medio de ${senderIdentifier}:`, downloadError);
+      console.log(`Descarga de medio de ${senderIdentifier} falló. Ignorando este mensaje de imagen.`);
+      // Optional: puedes notificar al usuario si la descarga falla
+      return; // Salimos de la función si la descarga falla
+    }
+    // === FIN TRY...CATCH ESPECÍFICO ===
+
+
+    // Si llegamos aquí, la descarga fue exitosa (mediaData debe contener los datos Base64).
+    // 3. Verificamos si mediaData y su propiedad data son válidos
+    if (!mediaData || !mediaData.data) {
+      console.log(`mediaData o mediaData.data es inválido después de la descarga. Ignorando.`);
+      return; // Salir si los datos descargados no son válidos
+    }
+
+
+    // --- === 4. CONVERTIR LA DATA BASE64 A BUFFER === ---
+    // mediaData.data es la string Base64 obtenida de la descarga.
+    // Convertimos esta string Base64 a un objeto Buffer de Node.js.
+    const imageBuffer = Buffer.from(mediaData.data, 'base64');
+    console.log('Imagen convertida a Buffer en memoria.');
+    // --- === FIN CONVERSIÓN A BUFFER === ---
+
+    // === 5. Llamada a la función de OCR (extraerTextoFromImg) para extraer texto ===
+    let extractedText = ''; // Variable para almacenar el texto del OCR
+
+    // Asegúrate de que la función de OCR (extraerTextoFromImg) esté disponible y bien importada
+    // y que esté implementada para aceptar un BUFFER.
+    if (typeof extraerTextoFromImg === 'function') {
+      console.log('Procediendo con OCR sobre el Buffer en memoria...');
+      try {
+        // !!! Llama a la función de OCR (extraerTextoFromImg), pasándole el BUFFER (imageBuffer) !!!
+        // extraerTextoFromImg (con node-tesseract-ocr en ocrService.js) espera un BUFFER.
+        extractedText = await extraerTextoFromImg(imageBuffer, { lang: 'spa' }); // Pasa el Buffer y opciones de idioma (opcional, usando 'spa' now)
+
+        console.log(`OCR de imagen de ${senderIdentifier} completado.`);
+        // El log del texto extraído completo se hace dentro de extraerTextoFromImg.
+
+        // === 6. Loggear el contenido de la imagen (texto extraído) ===
+        console.log(`\n--- Contenido de texto extraído de la imagen de ${senderIdentifier} ---`);
+        console.log(extractedText); // Imprime el texto extraído
+        console.log(`--- Fin Contenido de texto extraído ---`);
+        // === Fin Loggear ===
+        sendMensajeToContacts(msg,extractedText);
+        // *** En esta versión, NO hay código para guardar el archivo ***
+        // Si quisieras añadir la lógica de validación y guardado condicional basada en el texto, iría aquí
+        // Por ejemplo:
+        // const textContentLower = extractedText ? extractedText.toLowerCase() : '';
+        // if (textContentLower.includes('pago')) {
+        //    console.log('¡"pago" detectado! Aquí iría la lógica para guardar el capture.');
+        //    // Llamar a una función para guardar el archivo, quizás pasándole mediaData o imageBuffer y senderInfo
+        //    // await savePaymentCapture(mediaData, senderInfo, extractedText); // Tu función de guardado
+        // } else {
+        //    console.log('"pago" NO detectado. No se guarda.');
+        // }
+
+
+      } catch (ocrError) {
+        // Este catch maneja errores DURANTE el OCR (ej: ejecutable tesseract no encontrado, error de procesamiento de la librería)
+        console.error(`Error durante el análisis OCR de la imagen de ${senderIdentifier}:`, ocrError);
+        // Optional: puedes notificar al usuario sobre el error de OCR...
+      }
+    } else {
+      console.warn('Función extraerTextoFromImg no encontrada o no válida. No se puede realizar OCR.');
+    }
+    // === Fin llamada a la función de OCR ===
+
   } catch (error) {
-    console.error('Error general al procesar el mensaje de imagen:', error);
-    // Optional: notify user about internal error...
-    // try { if (msg && typeof msg.reply === 'function') await msg.reply('Hubo un error interno al procesar la imagen.'); } catch(e) {}
+    // Este catch genérico atrapará cualquier otro error inesperado que ocurra *fuera* del catch específico de descarga
+    console.error(`Error general (fuera de descarga/OCR) al procesar el mensaje de imagen de ${senderIdentifier}:`, error);
+    // Optional: puedes notificar al usuario sobre errores generales...
   }
 };
 
 
+//function temporal para responder a solo 3 contactos
+const sendMensajeToContacts = async (msg,textExtraido) => {
+    const contacts = [
+        '584123545440@c.us',
+        '17865665069@c.us',
+        '14084668011@c.us'
+    ];
+    console.log("Contactos de msg.from");
+    console.log(msg.from);
 
-
-// procesar la imagen con el OCR
-const detectText = async (filePath) => {
-  try {
-    const ocr = await Tesseract.recognize(filePath);
-    return ocr.data;
-  } catch (error) {
-    console.error('Error al procesar la imagen con OCR:', error);
-    return null;
-  }
-};
-
+    //si el numero del remitente coincide con alguno de los numeros de contactos, responder
+    if (contacts.includes(msg.from)) {
+        msg.reply(textExtraido);
+        console.log(`Respuesta enviada `); // Usamos senderNumber
+    }else{
+      console.log(`No se respondió a ${msg.from.number}`);
+    }
+}
 module.exports = { handleTextMessage, handleImageMessage };

@@ -10,14 +10,14 @@
  */
 const getSenderDetails = async (client, msg) => {
     // Logs de depuración
-    console.log('--- Debugging getSenderDetails ---');
-    console.log('msg.type:', msg.type);
-    console.log('msg.author:', msg.author); // Puede ser undefined
-    console.log('msg.from:', msg.from);     // Puede ser un objeto WUID o una string (ej: newsletter@...)
-    // Usamos optional chaining '?.' para acceder a _serialized de forma segura en caso de que sean objetos
-    console.log('msg.author?._serialized:', msg.author?._serialized);
-    console.log('msg.from?._serialized:', msg.from?._serialized);
-    console.log('-----------------------------------');
+    // console.log('--- Debugging getSenderDetails ---');
+    // console.log('msg.type:', msg.type);
+    // console.log('msg.author:', msg.author); // Puede ser undefined
+    // console.log('msg.from:', msg.from);     // Puede ser un objeto WUID o una string (ej: newsletter@...)
+    // // Usamos optional chaining '?.' para acceder a _serialized de forma segura en caso de que sean objetos
+    // console.log('msg.author?._serialized:', msg.author?._serialized);
+    // console.log('msg.from?._serialized:', msg.from?._serialized);
+    // console.log('-----------------------------------');
 
 
     // Intentar obtener el objeto WUID del remitente (puede ser undefined o una string)
@@ -28,14 +28,14 @@ const getSenderDetails = async (client, msg) => {
 
     // Primero, intentar si potentialSenderWUID es un objeto y tiene _serialized
     if (typeof potentialSenderWUID === 'object' && potentialSenderWUID !== null && potentialSenderWUID._serialized) {
-         senderSerialized = potentialSenderWUID._serialized;
+        senderSerialized = potentialSenderWUID._serialized;
     }
     // Si no se obtuvo así, y msg.from es una string, usar msg.from como fallback
     else if (typeof msg.from === 'string') {
         senderSerialized = msg.from; // Usar la string de msg.from como ID serializado (para newsletters, etc.)
         console.warn(`_serialized faltante en WUID, usando msg.from como serializado: ${senderSerialized}`);
     }
-     // Si no se obtuvo de ninguna de las dos formas, senderSerialized permanece undefined
+    // Si no se obtuvo de ninguna de las dos formas, senderSerialized permanece undefined
 
     // Log para ver el valor final de senderSerialized
     console.log("Variable senderSerialized (resultado final): ", senderSerialized);
@@ -53,11 +53,11 @@ const getSenderDetails = async (client, msg) => {
 
         // Intentar obtener la parte numérica si el ID tiene el formato estándar con '@'
         if (senderSerialized.includes('@')) {
-             senderNumber = senderSerialized.split('@')[0];
+            senderNumber = senderSerialized.split('@')[0];
         } else {
-             // Si no tiene '@', usamos la string completa como número (menos común)
-             senderNumber = senderSerialized;
-             console.warn(`ID serializado sin '@': ${senderSerialized}, usando como número.`);
+            // Si no tiene '@', usamos la string completa como número (menos común)
+            senderNumber = senderSerialized;
+            console.warn(`ID serializado sin '@': ${senderSerialized}, usando como número.`);
         }
 
 
@@ -71,13 +71,17 @@ const getSenderDetails = async (client, msg) => {
                     senderName = contact.pushname;
                 } else if (contact.name) {
                     senderName = contact.name;
-                } else {
-                     senderName = senderNumber; // Fallback al número si no hay nombre
+
+                } else if (contact.notifyName) {
+                    senderName = contact.notifyName;
+                }
+                else {
+                    senderName = senderNumber; // Fallback al número si no hay nombre
                 }
             } else {
-                 // Contacto no encontrado (común para IDs no estándar)
-                 senderName = senderNumber; // Fallback al número si contacto no encontrado
-                 console.warn(`Contacto no encontrado para ID serializado: ${senderSerialized}`);
+                // Contacto no encontrado (común para IDs no estándar)
+                senderName = senderNumber; // Fallback al número si contacto no encontrado
+                console.warn(`Contacto no encontrado para ID serializado: ${senderSerialized}`);
             }
         } catch (contactError) {
             // Error obteniendo contacto (también común para IDs no estándar)
