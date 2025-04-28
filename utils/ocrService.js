@@ -9,7 +9,7 @@ const config = {
     lang: 'spa', // !!! Idioma: español. Asegúrate de tener spa.traineddata y TESSDATA_PREFIX configurado.
     oem: 1,// OCR Engine mode (1: LSTM - suele ser más preciso)
     psm: 3 // Page segmentation mode (3: Automática, por defecto)
-    // Puedes añadir otras opciones de configuración de Tesseract aquí si necesitas
+
 };
 
 /**
@@ -39,9 +39,9 @@ async function extraerTextoFromImg(imageBuffer, options = {}) { // Acepta un BUF
         // ¡node-tesseract-ocr.recognize acepta un Buffer!
         const text = await tesseract.recognize(imageBuffer, finalConfig);
 
-        console.log('OCR Service (node-tesseract-ocr): Reconocimiento completo.');
+        //console.log('OCR Service (node-tesseract-ocr): Reconocimiento completo.');
         // Puedes loggear el texto completo aquí en el servicio si quieres una confirmación directa.
-        console.log('OCR Service (node-tesseract-ocr): Texto extraído:', text);
+        //console.log('OCR Service (node-tesseract-ocr): Texto extraído:', text);
 
 
         return text.trim(); // Devuelve el texto extraído (limpiando espacios/saltos)

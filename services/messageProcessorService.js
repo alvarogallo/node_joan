@@ -1,5 +1,6 @@
 const { processApiResponse } = require("../utils/messageUtils");
 const { extraerTextoFromImg } = require('../utils/ocrService');
+const { sendAnalysisResult } = require("./sendAnalysisImgResult");
 const axios = require('axios'); // Importa la librería axios
 require('dotenv').config(); // Carga las variables de entorno desde el archivo .env
 
@@ -73,7 +74,6 @@ const handleTextMessage = async (client, msg, senderInfo) => {
 const handleImageMessage = async (client, msg, senderInfo) => {
   const senderIdentifier = senderInfo?.nombre || senderInfo?.numero || 'Unknown Sender';
   console.log(`¡Manejando mensaje de imagen! Activando handleImageMessage para ${senderIdentifier}.`);
-
   let mediaData = null; // Variable para almacenar los datos del medio descargado
 
   try {
@@ -102,14 +102,12 @@ const handleImageMessage = async (client, msg, senderInfo) => {
     }
     // === FIN TRY...CATCH ESPECÍFICO ===
 
-
     // Si llegamos aquí, la descarga fue exitosa (mediaData debe contener los datos Base64).
     // 3. Verificamos si mediaData y su propiedad data son válidos
     if (!mediaData || !mediaData.data) {
       console.log(`mediaData o mediaData.data es inválido después de la descarga. Ignorando.`);
       return; // Salir si los datos descargados no son válidos
     }
-
 
     // --- === 4. CONVERTIR LA DATA BASE64 A BUFFER === ---
     // mediaData.data es la string Base64 obtenida de la descarga.
@@ -124,34 +122,14 @@ const handleImageMessage = async (client, msg, senderInfo) => {
     // Asegúrate de que la función de OCR (extraerTextoFromImg) esté disponible y bien importada
     // y que esté implementada para aceptar un BUFFER.
     if (typeof extraerTextoFromImg === 'function') {
-      console.log('Procediendo con OCR sobre el Buffer en memoria...');
+      //console.log('Procediendo con OCR sobre el Buffer en memoria...');
       try {
         // !!! Llama a la función de OCR (extraerTextoFromImg), pasándole el BUFFER (imageBuffer) !!!
         // extraerTextoFromImg (con node-tesseract-ocr en ocrService.js) espera un BUFFER.
         extractedText = await extraerTextoFromImg(imageBuffer, { lang: 'spa' }); // Pasa el Buffer y opciones de idioma (opcional, usando 'spa' now)
-
-        console.log(`OCR de imagen de ${senderIdentifier} completado.`);
-        // El log del texto extraído completo se hace dentro de extraerTextoFromImg.
-
-        // === 6. Loggear el contenido de la imagen (texto extraído) ===
-        console.log(`\n--- Contenido de texto extraído de la imagen de ${senderIdentifier} ---`);
-        console.log(extractedText); // Imprime el texto extraído
-        console.log(`--- Fin Contenido de texto extraído ---`);
-        // === Fin Loggear ===
-        sendMensajeToContacts(msg,extractedText);
-        // *** En esta versión, NO hay código para guardar el archivo ***
-        // Si quisieras añadir la lógica de validación y guardado condicional basada en el texto, iría aquí
-        // Por ejemplo:
-        // const textContentLower = extractedText ? extractedText.toLowerCase() : '';
-        // if (textContentLower.includes('pago')) {
-        //    console.log('¡"pago" detectado! Aquí iría la lógica para guardar el capture.');
-        //    // Llamar a una función para guardar el archivo, quizás pasándole mediaData o imageBuffer y senderInfo
-        //    // await savePaymentCapture(mediaData, senderInfo, extractedText); // Tu función de guardado
-        // } else {
-        //    console.log('"pago" NO detectado. No se guarda.');
-        // }
-
-
+        console.log(`PROCESO OCR PARA La imagen de ${senderIdentifier} completado.`);
+        //Mandamos a analizar el texto extraido, pasamos el numero de telefono y el texto extraido y si existe el caption
+        sendAnalysisResult(extractedText,msg.from,msg._data.caption);
       } catch (ocrError) {
         // Este catch maneja errores DURANTE el OCR (ej: ejecutable tesseract no encontrado, error de procesamiento de la librería)
         console.error(`Error durante el análisis OCR de la imagen de ${senderIdentifier}:`, ocrError);
@@ -163,29 +141,9 @@ const handleImageMessage = async (client, msg, senderInfo) => {
     // === Fin llamada a la función de OCR ===
 
   } catch (error) {
-    // Este catch genérico atrapará cualquier otro error inesperado que ocurra *fuera* del catch específico de descarga
     console.error(`Error general (fuera de descarga/OCR) al procesar el mensaje de imagen de ${senderIdentifier}:`, error);
-    // Optional: puedes notificar al usuario sobre errores generales...
   }
 };
 
 
-//function temporal para responder a solo 3 contactos
-const sendMensajeToContacts = async (msg,textExtraido) => {
-    const contacts = [
-        '584123545440@c.us',
-        '17865665069@c.us',
-        '14084668011@c.us'
-    ];
-    console.log("Contactos de msg.from");
-    console.log(msg.from);
-
-    //si el numero del remitente coincide con alguno de los numeros de contactos, responder
-    if (contacts.includes(msg.from)) {
-        msg.reply(textExtraido);
-        console.log(`Respuesta enviada `); // Usamos senderNumber
-    }else{
-      console.log(`No se respondió a ${msg.from.number}`);
-    }
-}
 module.exports = { handleTextMessage, handleImageMessage };
