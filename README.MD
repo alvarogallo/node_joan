@@ -1,12 +1,35 @@
-# BOT-WHATSAPP
+# BOT-WHATSAPP Node.JS
 
 ## Descripción
 
-Esta API permite interactuar con WhatsApp utilizando la librería `whatsapp-web.js`. Ofrece funcionalidades para iniciar sesión, enviar mensajes, gestionar grupos, obtener resultados de la lotería de Medellín y enviar mensajes programados a listas de grupos.
+Esta API permite interactuar con WhatsApp utilizando la librería `whatsapp-web.js`. Ofrece funcionalidades para iniciar sesión, enviar mensajes, gestionar grupos, obtener resultados de la lotería de Medellín y enviar mensajes programados (proximamente) a listas de grupos.
 
-# Notas 
-- si ves librerias depercated seguro tengan que ver con las dependencias de Puppeteer, ignoralas si no se resuelven con un npm update
-- los mensajes que llegan todos se toman y se reenvian a una api externa, La url de la misma puedes cambiarla en el fichero de whtasappClient.js en la linea 48
+
+## Insalación 👀
+
+1.  Asegúrate de tener [Node.js](https://nodejs.org/) y [npm](https://www.npmjs.com/) instalados.
+2.  para desplegar en produccion si estamos en ubuntu debes instalar unas librerias previas:
+  ```bash
+    sudo apt update
+    sudo apt install libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libgbm1 libgtk-3-0 libpango-1.0-0 libpangocairo-1.0-0 libasound2t64 --yes
+  ```
+  - Estos paquetes son necesrios para que funcione el binario de Chrome que utilizamos en la libreria `whatsapp-web.js`.
+
+3.  Clona el repositorio y dentro del directorio, ejecuta el comando:
+    ```bash
+    npm install
+    ```
+4. prepara la base de datos con el comando:
+    ```bash
+    npm run db:prepare
+    ```
+5.  Ejecuta el servidor con el comando: 
+    ```bash
+    npm run dev
+    ```
+
+
+
 
 ## Funcionalidades (Endpoints)
 
@@ -52,21 +75,7 @@ Esta API permite interactuar con WhatsApp utilizando la librería `whatsapp-web.
 * [SQLite](https://www.sqlite.org/)
 * [qrcode](https://www.npmjs.com/package/qrcode)
 
-## Configuración
 
-1.  Asegúrate de tener [Node.js](https://nodejs.org/) y [npm](https://www.npmjs.com/) instalados.
-2.  Clona el repositorio o crea un nuevo proyecto y dentro de la raiz del proyecto ejecuta:
-    ```bash
-    npm install
-    ```
-3. prepara la base de datos con el comando:
-    ```bash
-    npm run db:prepare
-    ```
-4.  Ejecuta el servidor con el comando: 
-    ```bash
-    npm run dev
-    ```
 ## Notas Adicionales
 
 * La sesión de WhatsApp se gestiona utilizando `whatsapp-web.js` con autenticación local.
