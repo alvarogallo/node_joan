@@ -73,7 +73,7 @@ const handleTextMessage = async (client, msg, senderInfo) => {
 
 const handleImageMessage = async (client, msg, senderInfo) => {
   const senderIdentifier = senderInfo?.nombre || senderInfo?.numero || 'Unknown Sender';
-  console.log(`¡Manejando mensaje de imagen! Activando handleImageMessage para ${senderIdentifier}.`);
+  console.log(`\n¡Manejando mensaje de imagen! Activando handleImageMessage para ${senderIdentifier}.`);
   let mediaData = null; // Variable para almacenar los datos del medio descargado
 
   try {

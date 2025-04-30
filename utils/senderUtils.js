@@ -33,7 +33,7 @@ const getSenderDetails = async (client, msg) => {
     // Si no se obtuvo así, y msg.from es una string, usar msg.from como fallback
     else if (typeof msg.from === 'string') {
         senderSerialized = msg.from; // Usar la string de msg.from como ID serializado (para newsletters, etc.)
-        console.warn(`_serialized faltante en WUID, usando msg.from como serializado: ${senderSerialized}`);
+        //console.warn(`_serialized faltante en WUID, usando msg.from como serializado: ${senderSerialized}`);
     }
     // Si no se obtuvo de ninguna de las dos formas, senderSerialized permanece undefined
 
