@@ -4,133 +4,56 @@
 
 Esta API permite interactuar con WhatsApp utilizando la librería `whatsapp-web.js`. Ofrece funcionalidades para iniciar sesión, enviar mensajes, gestionar grupos, obtener resultados de la lotería de Medellín y enviar mensajes programados (proximamente) a listas de grupos.
 
-## Instalación 👀
+## Instalación Rápida 🚀
 
-Para poner en marcha este proyecto, sigue los pasos a continuación:
+Para poner en marcha este proyecto, sigue estos pasos:
 
-1.  Asegúrate de tener [Node.js](https://nodejs.org/) y [npm](https://www.npmjs.com/) instalados en tu sistema. Puedes verificarlos ejecutando `node -v` y `npm -v` en tu terminal.
-
-2.  **Instalar dependencias del sistema para whatsapp-web.js:**
-    * **En Ubuntu (para despliegue en producción):** Necesitas instalar algunas librerías necesarias para el funcionamiento del binario de Chrome que utiliza `whatsapp-web.js`. Abre una terminal y ejecuta:
+1.  **Preparación Inicial:**
+    * Asegúrate de tener [Node.js](https://nodejs.org/) y [npm](https://www.npmjs.com/) instalados (`node -v`, `npm -v`).
+    * **En Ubuntu (para despliegue):** Instala dependencias del sistema para `whatsapp-web.js`:
         ```bash
-        sudo apt update
-        sudo apt install libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libgbm1 libgtk-3-0 libpango-1.0-0 libpangocairo-1.0-0 libasound2t64 --yes
-        ```
-    * **En otros sistemas operativos (como Windows o macOS) o para desarrollo en Ubuntu:** Estos paquetes específicos de Ubuntu generalmente no son necesarios.
-
-3.  **Instalar Tesseract OCR (el programa):** Este bot utiliza Tesseract para reconocimiento óptico de caracteres (OCR). Es crucial entender que Tesseract es un **programa independiente** que se instala a nivel de tu sistema operativo, no es una librería de Node.js que se instale directamente con `npm install`. La librería de Node.js que usa este bot es un "envoltorio" que simplemente llama a este programa Tesseract instalado.
-
-    La instalación de Tesseract a menudo requiere permisos de administrador porque instala archivos en directorios del sistema (como `C:\Program Files` en Windows). Además, para poder ejecutar el comando `tesseract` desde cualquier ubicación en tu terminal, el directorio donde se instaló Tesseract debe estar añadido a la **variable de entorno PATH** de tu sistema. La mayoría de los métodos de instalación manejan esto, pero es importante verificar.
-
-    También necesitarás los **datos de idioma** (`.traineddata`) para los idiomas que quieres reconocer (como español `spa` e inglés `eng`). Estos archivos se guardan en la carpeta `tessdata` de la instalación de Tesseract y suelen incluirse o ser seleccionables durante el proceso de instalación.
-
-    Elige el método de instalación según tu sistema operativo:
-
-    * **En Ubuntu:** Abre una terminal y ejecuta los siguientes comandos para instalar Tesseract y los datos de idioma español e inglés (puedes agregar otros paquetes `tesseract-ocr-<codigo_idioma>` si los necesitas):
-        ```bash
-        sudo apt update
-        sudo apt install tesseract-ocr tesseract-ocr-spa tesseract-ocr-eng --yes
+        sudo apt update && sudo apt install libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libgbm1 libgtk-3-0 libpango-1.0-0 libpangocairo-1.0-0 libasound2t64 --yes
         ```
 
-    * **En Windows:** La forma más recomendada es usar un gestor de paquetes desde la línea de comandos. **Asegúrate de ejecutar tu Símbolo del sistema (CMD) o PowerShell como Administrador** para evitar problemas de permisos como "Acceso denegado".
+2.  **Instalar Tesseract OCR (Programa de Sistema):**
+    Tesseract es necesario para el OCR. **Debes instalar el programa a nivel de sistema.** La librería Node.js lo usa internamente.
 
-        * **Con Winget (Windows 10/11):**
-            ```cmd
-            winget install TesseractOCR.TesseractOCR
-            ```
-            Sigue las indicaciones del instalador que aparecerá. Winget normalmente maneja el PATH y los idiomas básicos.
-        * **Con Chocolatey (si lo tienes instalado):**
-            ```cmd
-            choco install tesseract-ocr
-            ```
-            Chocolatey instalará Tesseract y añadirá la ruta al PATH.
-        * **Desde el instalador oficial (.exe):**
-            1.  Descarga el instalador para tu arquitectura (32-bit o 64-bit) desde la página de [releases de Tesseract en GitHub](https://github.com/tesseract-ocr/tesseract/releases).
-            2.  **Ejecuta el archivo descargado `tesseract-ocr-*-setup-*.exe` como Administrador** (clic derecho -> "Ejecutar como administrador").
-            3.  Durante la instalación, asegúrate de **seleccionar los idiomas** que necesitas instalar.
-            4.  Verifica que la opción "Add tesseract to path" (o similar) esté marcada si está disponible, o considera añadir la ruta de instalación (ej: `C:\Program Files\Tesseract-OCR`) a la variable de entorno PATH manualmente después de la instalación.
-
-    * **Verifica la instalación de Tesseract:** Abre una **nueva** terminal (CMD, PowerShell o Bash, ejecutada normalmente si ya instalaste como administrador) y ejecuta:
+    * **En Ubuntu:**
         ```bash
-        tesseract --version
+        sudo apt update && sudo apt install tesseract-ocr tesseract-ocr-spa tesseract-ocr-eng --yes
         ```
-        Si la instalación fue exitosa y el PATH está configurado, verás la versión instalada. Si no lo reconoce, revisa la variable PATH de tu sistema.
+    * **En Windows:**
+        * **Opción Recomendada (CMD/PowerShell - Ejecutar como Administrador):**
+            * Con Winget: `winget install TesseractOCR.TesseractOCR`
+            * Con Chocolatey: `choco install tesseract-ocr`
+        * **Opción Manual (Instalador - Ejecutar como Administrador):**
+            * Descarga el .exe: [https://github.com/tesseract-ocr/tesseract/releases/download/5.5.0/tesseract-ocr-w64-setup-5.5.0.20241111.exe](https://github.com/tesseract-ocr/tesseract/releases/download/5.5.0/tesseract-ocr-w64-setup-5.5.0.20241111.exe)
+            * Ejecuta el .exe **como Administrador**. Selecciona el idioma español.
+        * **Verifica la instalación:** Abre una nueva terminal y ejecuta `tesseract --version`.
 
-4.  **Clona el repositorio e instala las dependencias de Node.js:** Clona este repositorio y navega al directorio del proyecto. Luego ejecuta el siguiente comando:
-    ```bash
-    git clone <URL_DE_TU_REPOSITORIO>
-    cd <nombre_del_directorio_del_proyecto>
-    npm install
-    ```
+3.  **Configurar Idioma Español (si falta):**
+    Si después de instalar Tesseract, el español (`spa.traineddata`) no funciona o falta en la carpeta `tessdata` de tu instalación de Tesseract en el sistema, puedes copiarlo manualmente usando un script.
+    * Asegúrate de tener `spa.traineddata` y colócalo en la carpeta `./data/` en la raíz de este proyecto.
+    * **🚨 ¡IMPORTANTE! Este paso requiere ejecutar la terminal como Administrador (Windows) o usar Sudo (Ubuntu).**
 
-5.  **Prepara la base de datos:** Ejecuta el siguiente comando para configurar la base de datos (ajusta según tu configuración de base de datos en el proyecto):
-    ```bash
-    npm run db:prepare
-    ```
-
-6.  **Ejecuta el servidor:** Finalmente, inicia el bot con el comando:
-    ```bash
-    npm run dev
-    ```
-
-¡Listo! El bot debería estar funcionando. Asegúrate de haber configurado correctamente las variables de entorno u archivos de configuración necesarios para tu bot (como credenciales de WhatsApp, configuración de base de datos, etc.).
-
-Para poner en marcha este proyecto, sigue los pasos a continuación:
-
-1.  Asegúrate de tener [Node.js](https://nodejs.org/) y [npm](https://www.npmjs.com/) instalados en tu sistema. Puedes verificarlos ejecutando `node -v` y `npm -v` en tu terminal.
-
-2.  **Instalar dependencias del sistema:**
-    * **En Ubuntu (para despliegue en producción):** Necesitas instalar algunas librerías necesarias para el funcionamiento del binario de Chrome que utiliza `whatsapp-web.js`. Abre una terminal y ejecuta:
+    * **En Windows (CMD/PowerShell - Ejecutar como Administrador):**
         ```bash
-        sudo apt update
-        sudo apt install libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libgbm1 libgtk-3-0 libpango-1.0-0 libpangocairo-1.0-0 libasound2t64 --yes
+        npm run ocr:config:win
         ```
-    * **En otros sistemas operativos (como Windows o macOS) o para desarrollo en Ubuntu:** Estos paquetes específicos de Ubuntu generalmente no son necesarios.
+    * **En Ubuntu (Terminal normal):**
+      PROXIMAMENTE:
+    *(Estos scripts asumen rutas de instalación estándar de Tesseract. Puede que necesites ajustarlos si tu instalación es diferente.)*
 
-3.  **Instalar Tesseract OCR:** Este bot utiliza Tesseract para reconocimiento óptico de caracteres (OCR). Debes instalar el programa Tesseract en tu sistema.
+4.  **Configurar Proyecto:**
+    * Clona el repositorio (si no lo hiciste): `git clone <URL_DE_TU_REPOSITORIO>`
+    * Navega al directorio: `cd <nombre_del_directorio_del_proyecto>`
+    * Instala dependencias Node.js: `npm install`
+    * Prepara la base de datos: `npm run db:prepare`
 
-    * **En Ubuntu:** Abre una terminal y ejecuta los siguientes comandos para instalar Tesseract y los datos de idioma español e inglés (puedes agregar otros si los necesitas):
-        ```bash
-        sudo apt update
-        sudo apt install tesseract-ocr tesseract-ocr-spa tesseract-ocr-eng --yes
-        ```
-    * **En Windows:** La forma más recomendada es usar un gestor de paquetes desde la línea de comandos:
-        * **Con Winget (Windows 10/11):** Abre el Símbolo del sistema (CMD) o PowerShell y ejecuta:
-            ```cmd
-            winget install TesseractOCR.TesseractOCR
-            ```
-            Sigue las indicaciones del instalador.
-        * **Con Chocolatey (si lo tienes instalado):** Abre el Símbolo del sistema (CMD) como administrador y ejecuta:
-            ```cmd
-            choco install tesseract-ocr
-            ```
-            Sigue las indicaciones de Chocolatey.
-        * **Desde el instalador oficial (.exe):** Descarga el instalador desde las [releases de Tesseract en GitHub](https://github.com/tesseract-ocr/tesseract/releases) y ejecútalo manualmente o desde CMD navegando hasta la carpeta de descarga y ejecutando el `.exe` (ej: `tesseract-ocr-w64-setup-X.Y.Z.exe`). Asegúrate de seleccionar los idiomas que necesitas durante la instalación.
+5.  **Ejecutar Bot:**
+    * Inicia el servidor: `npm run dev`
 
-    * **Verifica la instalación de Tesseract:** Abre una nueva terminal (CMD, PowerShell o Bash) y ejecuta:
-        ```bash
-        tesseract --version
-        ```
-        Debería mostrar la versión instalada. Si no lo reconoce, asegúrate de que el directorio de instalación de Tesseract esté añadido a la variable de entorno PATH de tu sistema.
-
-4.  **Clona el repositorio e instala las dependencias de Node.js:** Clona este repositorio y navega al directorio del proyecto. Luego ejecuta el siguiente comando:
-    ```bash
-    git clone <URL_DE_TU_REPOSITORIO>
-    cd <nombre_del_directorio_del_proyecto>
-    npm install
-    ```
-
-5.  **Prepara la base de datos:** Ejecuta el siguiente comando para configurar la base de datos (ajusta según tu configuración de base de datos en el proyecto):
-    ```bash
-    npm run db:prepare
-    ```
-
-6.  **Ejecuta el servidor:** Finalmente, inicia el bot con el comando:
-    ```bash
-    npm run dev
-    ```
-
-¡Listo! El bot debería estar funcionando. Asegúrate de haber configurado correctamente las variables de entorno u archivos de configuración necesarios para tu bot (como credenciales de WhatsApp, configuración de base de datos, etc.).
+Asegúrate de configurar las variables de entorno o archivos de configuración necesarios para tu bot.
 
 
 

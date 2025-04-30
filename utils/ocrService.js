@@ -3,6 +3,7 @@
 // Importa la librería node-tesseract-ocr
 const tesseract = require('node-tesseract-ocr');
 
+
 // Configuración de Tesseract para node-tesseract-ocr
 // Asegúrate de que el idioma 'spa' esté instalado en tu sistema para Tesseract.
 const config = {

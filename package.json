@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "node --watch index.js",
     "start": "node index.js",
+    "ocr:config:win": "copy .\\spa.traineddata \"C:\\Program Files\\Tesseract-OCR\\tessdata\\\"",
     "db:migrate": "npx knex migrate:latest",
     "db:seed": "npx knex seed:run",
     "db:prepare": "npm run db:migrate && npm run db:seed",
