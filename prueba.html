@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login y QR</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+        h1 {
+            color: #333;
+        }
+        #status {
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        #qrCode {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, 0.3);
+            border-radius: 50%;
+            border-top-color: #333;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Inicio de Sesión</h1>
+        <div id="status">Iniciando proceso de login...</div>
+        <div id="qrCode"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const userId = '22222222';
+            const statusElement = document.getElementById('status');
+            const qrCodeElement = document.getElementById('qrCode');
+            
+            // Función para hacer solicitudes POST
+            async function makePostRequest(url, data = {}) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Error HTTP: ${response.status}`);
+                    }
+                    
+                    return await response.json();
+                } catch (error) {
+                    console.error('Error en la solicitud:', error);
+                    statusElement.innerHTML = `Error: ${error.message}`;
+                    return null;
+                }
+            }
+            
+            // Función para generar el código QR
+            function generateQR(qrData) {
+                qrCodeElement.innerHTML = '';
+                
+                new QRCode(qrCodeElement, {
+                    text: qrData,
+                    width: 256,
+                    height: 256,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            }
+            
+            // Función para iniciar el proceso de login
+            async function initiateLogin() {
+                statusElement.innerHTML = '<div class="loading"></div> Verificando estado...';
+                
+                // Primera solicitud POST para verificar el estado
+                const loginResponse = await makePostRequest(`http://localhost:6969/api/login/${userId}`);
+                if(loginResponse.status === "qr_received"){
+                    //Hacer la segunda peticion a la api
+                    //http://localhost:6969/api/qr/{codigo}
+                    const qrResponse = await makePostRequest(`http://localhost:6969/api/qr/${userId}`);
+                    console.log(qrResponse)
+
+                    if(qrResponse.status === "qr_received"){
+                        statusElement.innerHTML = 'Escanea este código QR:';
+                        // Generar el código QR con los datos recibidos
+                        generateQR(qrResponse.qr);
+                    }
+
+                }
+
+
+
+                if (!loginResponse) return;
+                
+                if (loginResponse.status === "initializing") {
+                    statusElement.innerHTML = '<div class="loading"></div> Obteniendo código QR...';
+                    
+                    // Segunda solicitud POST para obtener el código QR
+                    const qrResponse = await makePostRequest(`http://localhost:6969/api/qr/${userId}`);
+
+                 
+                    
+                    if (!qrResponse) return;
+                    
+                    if (qrResponse.status === "qr_received" && qrResponse.qr) {
+                        statusElement.innerHTML = 'Escanea este código QR:';
+                        // Generar el código QR con los datos recibidos
+                        generateQR(qrResponse.qr);
+                    } else {
+                        statusElement.innerHTML = `Estado: ${qrResponse.status}<br>Mensaje: ${qrResponse.message}`;
+                    }
+                } else {
+                    statusElement.innerHTML = `Estado: ${loginResponse.status}<br>Mensaje: ${loginResponse.message}`;
+                }
+
+                
+            }
+            
+            // Iniciar el proceso
+            initiateLogin();
+
+
+        });
+    </script>
+</body>
+</html>

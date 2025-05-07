@@ -28,7 +28,7 @@ const handleTextMessage = async (client, msg, senderInfo) => {
   try {
 
     // El mensaje de texto esta dirigido al bot de natillera?
-    const commandPrefix = 'natibot';
+    const commandPrefix = 'natillera';
     if (!(msg._data.body.toLowerCase().includes(commandPrefix))) {
       console.log("Mensaje de texto no dirigido al bot, no se procesa")
       return

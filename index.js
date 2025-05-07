@@ -6,7 +6,6 @@ const app = express();
 const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("./swagger.json");
 const port = 6969;
-const { initializeWhatsAppClient, getQrCode } = require("./whatsappClient"); // Importamos la inicialización
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const apiRoutes = require("./routes/api"); // Importamos el router que creamos
@@ -75,10 +74,6 @@ const authenticateToken = (req, res, next) => {
 };
 
 
-
-
-// Inicializamos el cliente de WhatsApp
-initializeWhatsAppClient();
 app.use(cookieParser());
 app.use("/doc", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.set('view engine', 'ejs');
@@ -121,7 +116,7 @@ app.post('/verificar-clave', (req, res) => {
 
 
 // **Aplica el middleware de autenticación a todas las rutas bajo /api**
-app.use("/api", authenticateToken, apiRoutes);
+app.use("/api", apiRoutes);
 
 app.listen(port, () => {
     console.log(`Servicio escuchando en http://localhost:${port}`);

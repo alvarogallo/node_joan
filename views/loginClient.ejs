@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escanear QR</title>
+    <style>
+        /* Estilos básicos para centrar el contenido */
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        #qr-container {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        #qr-container p {
+            color: #555;
+        }
+         /* Estilo para el contenedor del QR generado por qrcode.js */
+        #qr-container canvas,
+        #qr-container img { /* qrcode.js puede generar canvas o img */
+             margin: 0 auto; /* Centrar el elemento generado */
+             display: block; /* Asegurar que ocupe su propia línea */
+        }
+        .controls {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .controls input[type="text"], .controls button {
+            padding: 10px;
+            margin: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        .controls button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+        .controls button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Escanear Código QR</h1>
+
+    <div class="controls">
+        <label for="codigo">Código de Sesión:</label>
+        <input type="text" id="codigo" value=""> {{-- Input para que el usuario ingrese el código --}}
+        <button onclick="startLoginProcess()">Iniciar Sesión</button>
+        <button onclick="eliminarSesion()">Reiniciar Sesión</button>
+    </div>
+
+    <div id="qr-container">
+        <p>Ingresa un código y haz clic en "Iniciar Sesión".</p>
+    </div>
+
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+
+    <script type="text/javascript">
+
+        // *** Obtener la URL base del servidor inyectada por EJS ***
+        const serverBaseUrl = '<%= serverBaseUrl %>'; // <-- Usamos la variable EJS aquí
+
+        // Obtener referencia al input del código y al contenedor del QR
+        const codigoInput = document.getElementById('codigo');
+        const qrContainer = document.getElementById('qr-container');
+
+        let intentos = 0;
+        const maxIntentos = 30; // Aumentar el número máximo de intentos para el polling del QR
+        const retryDelay = 5000; // Retraso en milisegundos entre intentos (5 segundos)
+
+        // Función para mostrar mensajes en el contenedor QR
+        function showMessage(msg) {
+            qrContainer.innerHTML = `<p>${msg}</p>`;
+        }
+
+        // Función para iniciar el proceso de login en el backend
+        function startLoginProcess() {
+            intentos = 0; // Resetear intentos para el polling del QR
+            const codigo = codigoInput.value.trim(); // Obtener el código del input y limpiar espacios
+
+            if (!codigo) {
+                showMessage('Por favor, ingresa un código de sesión.');
+                return;
+            }
+
+            showMessage('Iniciando sesión, por favor espere...');
+            console.log(`Attempting to login process for code ${codigo}`);
+
+            // Paso 1: Petición POST a la ruta /api/login/:codeSession del backend Node.js
+            // *** Usar la variable serverBaseUrl ***
+            fetch(`${serverBaseUrl}/api/login/${codigo}`, { // *** ASEGÚRATE DE QUE ESTA URL Y PUERTO SEAN CORRECTOS Y INCLUYAN /api ***
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                // No se envía body si el código va en la URL
+            })
+            .then(response => {
+                if (!response.ok) {
+                     return response.json().then(err => { throw new Error(err.error || `Login failed with status: ${response.status}`); });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Login initiated response:', data);
+                if (data.login === true && data.status === 'ready') {
+                    showMessage(`Cliente ${codigo} ya está listo.`);
+                    // Opcional: Redirigir o mostrar información de cliente listo
+                } else {
+                    showMessage(`Proceso de cliente iniciado. Estado: ${data.status}. Esperando QR...`);
+                    // Paso 2: Si el login no es inmediato, empezar a pedir el QR después de un retraso
+                    // Pasamos el código a obtenerQR para que sepa qué QR solicitar
+                    setTimeout(() => obtenerQR(codigo), retryDelay);
+                }
+            })
+            .catch(error => {
+                console.error('Error during login initiation:', error);
+                showMessage(`Error al iniciar sesión: ${error.message}.`);
+            });
+        }
+
+        // Función para obtener el string de datos del QR del backend (se llama repetidamente)
+        function obtenerQR(codigo) {
+            intentos++;
+            console.log(`Intento ${intentos} de obtener QR para código ${codigo}`);
+
+            // Actualizar el mensaje de carga mientras se reintenta
+             if (intentos > 1) {
+                 showMessage(`Reintentando obtener QR (${intentos}/${maxIntentos})...`);
+             } else {
+                 // Mensaje inicial ya mostrado en startLoginProcess
+             }
+
+
+            // Realizar una petición GET a la ruta /api/qr/:code del backend Node.js
+            // *** Usar la variable serverBaseUrl ***
+            fetch(`${serverBaseUrl}/api/qr/${codigo}` , { // *** ASEGÚRATE DE QUE ESTA URL Y PUERTO SEAN CORRECTOS Y INCLUYAN /api ***
+                method: 'POST' 
+            }).then(response => {
+                    console.log('Respuesta QR recibida:', response.status);
+                    if (response.status === 202) {
+                        // El backend indica que el QR aún no está disponible, reintentar
+                        if (intentos < maxIntentos) {
+                            setTimeout(() => obtenerQR(codigo), retryDelay); // Reintentar después del retraso
+                        } else {
+                             showMessage('No se pudo obtener el QR después de varios intentos. Por favor, verifique el código de sesión o reinicie.');
+                        }
+                        return Promise.reject('QR_NOT_READY'); // Salir de esta cadena de promesas
+                    }
+                     if (response.status === 404) {
+                         // Sesión no encontrada en el backend (ej. código incorrecto o no iniciado)
+                         showMessage('Error: Sesión no encontrada para este código. Inicia sesión primero.');
+                         return Promise.reject('SESSION_NOT_FOUND');
+                     }
+                    if (!response.ok) {
+                        // Otro error del servidor (ej. 500 Internal Server Error)
+                         return response.json().then(err => { throw new Error(`Error del servidor QR: ${response.status} - ${err.message || 'Desconocido'}`); });
+                    }
+                    // Si la respuesta es OK (200), procesar el JSON
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Datos QR recibidos:', data);
+                    // --- Verificar si el string de datos del QR está en los datos ---
+                    if (data.qr) { // <-- Esperamos data.qr (el string de datos)
+                        // Si el backend devolvió el string de datos del QR
+                        qrContainer.innerHTML = ''; // Limpiar el contenedor
+
+                        // Crear un nuevo objeto QRCode y renderizar el QR visual
+                        new QRCode(qrContainer, { // Usar la referencia al elemento
+                            text: data.qr, // <-- Usar el string de datos del QR
+                            width: 256,
+                            height: 256,
+                            colorDark: "#000000",
+                            colorLight: "#ffffff",
+                            correctLevel: QRCode.CorrectLevel.H
+                        });
+
+                        console.log('QR generado y mostrado correctamente');
+                        // Detener reintentos ya que obtuvimos el QR
+                        intentos = maxIntentos; // Establecer intentos al máximo para detener el setTimeout pendiente
+                    } else {
+                         // Si la respuesta es OK pero sin data.qr (esto no debería pasar con status 200 si hay QR)
+                         showMessage('Respuesta inesperada sin código QR data string.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error en fetch QR:', error);
+                     // Si el error no fue 'QR_NOT_READY', 'SESSION_NOT_FOUND' y no excedimos intentos
+                    if (error !== 'QR_NOT_READY' && error !== 'SESSION_NOT_FOUND' && intentos < maxIntentos) {
+                         showMessage(`Error al obtener el QR (${error.message || error}). Reintentando en ${retryDelay / 1000} segundos...`);
+                         setTimeout(() => obtenerQR(codigo), retryDelay);
+                    } else if (error !== 'QR_NOT_READY' && error !== 'SESSION_NOT_FOUND') {
+                         // Si fue otro error y excedimos intentos
+                         showMessage('No se pudo obtener el QR después de varios intentos. Por favor, verifique el código de sesión o recargue la página.');
+                    }
+                     // Si el error fue 'QR_NOT_READY' o 'SESSION_NOT_FOUND', el mensaje ya se mostró en el then/status 202/404
+                });
+        }
+
+        // Función para reiniciar la sesión en el backend
+        function eliminarSesion() {
+             const codigo = codigoInput.value.trim(); // Obtener el código del input y limpiar espacios
+
+             if (!codigo) {
+                 alert('Por favor, ingresa un código de sesión.');
+                 return;
+             }
+
+             if (confirm(`¿Estás seguro de querer reiniciar la sesión con código ${codigo}?`)) {
+                 // Petición POST a la ruta /reset/:code del backend Node.js
+                 // *** Usar la variable serverBaseUrl ***
+                 fetch(`${serverBaseUrl}/api/reset/${codigo}`, {
+                     method: 'POST',
+                     headers: {
+                         'Content-Type': 'application/json',
+                     }
+                 })
+                 .then(response => {
+                      if (!response.ok) {
+                          return response.json().then(err => { throw new Error(err.error || `Error del servidor: ${response.status}`); });
+                      }
+                      return response.json();
+                  })
+                 .then(data => {
+                     alert('Sesión reiniciada correctamente');
+                     // Limpiar el contenedor QR y preparar para iniciar de nuevo
+                     showMessage('Sesión reiniciada. Ingresa el código y haz clic en "Iniciar Sesión".');
+                     // Opcional: Deshabilitar botón de reset hasta que se inicie una nueva sesión
+                 })
+                 .catch(error => {
+                     console.error('Error al reiniciar sesión:', error);
+                     alert(`Error al reiniciar la sesión: ${error.message}`);
+                 });
+             }
+         }
+
+        // Hacer las funciones globales para que puedan ser llamadas por los botones
+        window.startLoginProcess = startLoginProcess;
+        window.eliminarSesion = eliminarSesion;
+
+        // No llamamos a startLoginProcess al cargar la página por defecto.
+        // El usuario hará clic en el botón.
+
+    </script>
+</body>
+</html>
