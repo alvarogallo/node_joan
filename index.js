@@ -116,8 +116,12 @@ app.post('/verificar-clave', (req, res) => {
 
 
 // **Aplica el middleware de autenticación a todas las rutas bajo /api**
-app.use("/api", authenticateToken, apiRoutes);
+app.use("/api", apiRoutes);
 
-app.listen(port, () => {
-    logger.log(`Servicio escuchando en http://localhost:${port}`);
+const hostname = '0.0.0.0'; 
+
+app.listen(port, hostname, () => { // Pasa el hostname como segundo argumento
+    logger.log(`Servicio escuchando en http://${hostname}:${port}`); // Actualiza el mensaje de log para reflejar que escucha en 0.0.0.0
+    logger.info(`La aplicación Node.js está escuchando en el puerto ${port}`);
+
 });

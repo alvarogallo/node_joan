@@ -54,25 +54,32 @@
 <body>
     <div class="container">
         <h1>Inicio de Sesión</h1>
+        <input type="text" name="userID" id="userID" placeholder="Ingrese su ID de usuario">
+        <button id="loginButton">Iniciar Sesión</button>
         <div id="status">Iniciando proceso de login...</div>
         <div id="qrCode"></div>
     </div>
 
     <script>
+        //para pode rhacer la peticion al la api
+        const token = 'natillera588'
+
         document.addEventListener('DOMContentLoaded', function() {
-            const userId = '22222222';
+            const userId = document.getElementById('userID').value;
             const statusElement = document.getElementById('status');
             const qrCodeElement = document.getElementById('qrCode');
-            
+            const loginButton = document.getElementById('loginButton').addEventListener('click', login);
             // Función para hacer solicitudes POST
-            async function makePostRequest(url, data = {}) {
+            async function makePostRequest(url) {
                 try {
                     const response = await fetch(url, {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+
                         },
-                        body: JSON.stringify(data)
+                        body: JSON.stringify(userId)
                     });
                     
                     if (!response.ok) {
@@ -149,8 +156,9 @@
                 
             }
             
-            // Iniciar el proceso
-            initiateLogin();
+            function login(){
+                initiateLogin();
+            }
 
 
         });
