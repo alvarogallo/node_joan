@@ -10,7 +10,7 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const apiRoutes = require("./routes/api"); // Importamos el router que creamos
 const path = require('path');
-
+const logger = require("./utils/logger");
 require('dotenv').config();
 
 // Midelware para bloquear ip si intentan muchas peticiones de forma fallida
@@ -116,8 +116,8 @@ app.post('/verificar-clave', (req, res) => {
 
 
 // **Aplica el middleware de autenticación a todas las rutas bajo /api**
-app.use("/api", apiRoutes);
+app.use("/api", authenticateToken, apiRoutes);
 
 app.listen(port, () => {
-    console.log(`Servicio escuchando en http://localhost:${port}`);
+    logger.log(`Servicio escuchando en http://localhost:${port}`);
 });

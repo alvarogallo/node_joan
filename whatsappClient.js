@@ -56,14 +56,14 @@ function saveUserData(clientId, userData) {
 function getOrCreateClient(clientId) {
     // 1. Verificar si ya tenemos una instancia para este clientId en memoria (en el objeto sessions)
     if (sessions[clientId] && sessions[clientId].client) {
-        console.log(`[${clientId}] Returning existing client instance.`);
+        logger.log(`[${clientId}] Returning existing client instance.`);
         // Si ya existe y tiene una instancia de cliente, la devolvemos
         return sessions[clientId].client;
     }
 
     // 2. Si no existe una instancia, vamos a crear una nueva
 
-    console.log(`[${clientId}] Creating new client instance...`);
+    logger.info(`[${clientId}] Creating new client instance.`);
 
     // Cargar datos existentes para este usuario si los hay (si implementaste loadUserData)
     const userData = loadUserData(clientId);
@@ -77,15 +77,14 @@ function getOrCreateClient(clientId) {
             status: 'initializing', // Estado inicial
             phoneNumber: null,
             qr: null,
-            qrBase64: null, // <-- Campo para el QR en Base64
+        
         };
     } else {
         // Si la entrada existía pero no tenía una instancia (ej. después de un reset parcial)
         // Limpiar estados anteriores y asegurar que no haya instancia vieja
          sessions[clientId].client = null;
          sessions[clientId].status = 'initializing';
-         sessions[clientId].qr = null;
-         sessions[clientId].qrBase64 = null; // Limpiar Base64 también
+         sessions[clientId].qr = null
          sessions[clientId].phoneNumber = null;
     }
 
@@ -120,7 +119,7 @@ function getOrCreateClient(clientId) {
         sessions[clientId].status = 'qr_received';
         sessions[clientId].qr = qr; // Almacenar el string del QR original
  
-        console.log(`[${clientId}] QR STRING RECEIVED`);
+        logger.log(`[${clientId}] QR STRING RECEIVED`);
         qrcodeTerminal.generate(qr, { small: true }); // Mostrar en terminal (opcional)
     });
 
@@ -130,14 +129,14 @@ function getOrCreateClient(clientId) {
         sessions[clientId].status = 'authenticated';
         sessions[clientId].qr = null; // Limpiar el QR una vez autenticado
         sessions[clientId].qrBase64 = null; // Limpiar el QR Base64
-        console.log(`[${clientId}] AUTHENTICATED`);
+        logger.log(`[${clientId}] AUTHENTICATED`);
     });
 
     client.on('auth_failure', msg => {
         sessions[clientId].status = 'auth_failure';
         sessions[clientId].qr = null; // Limpiar el QR en caso de fallo
         sessions[clientId].phoneNumber = null;
-        console.error(`[${clientId}] AUTH FAILURE`, msg);
+        logger.error(`[${clientId}] AUTH FAILURE`, msg);
     });
 
     client.on('ready', () => {
@@ -148,12 +147,12 @@ function getOrCreateClient(clientId) {
         client.getMe().then(me => {
              // me.user contiene el número (ej. 1234567890@c.us -> 1234567890)
              sessions[clientId].phoneNumber = me.user;
-             console.log(`[${clientId}] Client is ready! Phone Number: ${sessions[clientId].phoneNumber}`);
+             logger.log(`[${clientId}] Client is ready! Phone Number: ${sessions[clientId].phoneNumber}`);
         }).catch(err => {
-            console.error(`[${clientId}] Error getting phone number on ready:`, err);
-            console.log(`[${clientId}] Client is ready, but could not get phone number.`);
+            logger.error(`[${clientId}] Error getting phone number on ready:`, err);
+            logger.log(`[${clientId}] Client is ready, but could not get phone number.`);
         });
-        console.log(`[${clientId}] Client is ready! 🎉🎉🎉`);
+        logger.log(`[${clientId}] Client is ready! 🎉🎉🎉`);
 
         // Aquí puedes empezar a usar el cliente para enviar/recibir mensajes
         // Por ejemplo, enviar un mensaje de bienvenida:
@@ -166,7 +165,7 @@ function getOrCreateClient(clientId) {
     client.on('message', async (msg) => {
         // Mensaje recibido!
         // Sabemos de qué cliente es gracias al closure clientId
-        console.log(`[${clientId}] Message received.`);
+        logger.info(`[${clientId}] <- ha recibido un mensaje.`);
 
         let senderInfo = null;
         let displayIdentifier = 'Unknown Sender';
@@ -180,21 +179,21 @@ function getOrCreateClient(clientId) {
              // Una vez que senderInfo se ha obtenido,
              // podemos crear un identificador más seguro para logs o replies
              displayIdentifier = senderInfo?.nombre || senderInfo?.numero || msg.from?._serialized || msg.from || 'Unknown Sender';
-             console.log(`--->🚩 Mensaje recibido 🚩 <---- \nCliente ID: ${clientId},\nTipo: ${msg.type},\nFrom: ${msg.from},\nNombre de Usuario: ${displayIdentifier},\nAuthor: ${msg.author},\nBody: ${msg.body ? msg.body.substring(0, 50) + '...' : '[No body]'}\n ---------\n`);
+             logger.log(`--->🚩 Mensaje recibido 🚩 <---- \nCliente ID: ${clientId},\nTipo: ${msg.type},\nFrom: ${msg.from},\nNombre de Usuario: ${displayIdentifier},\nAuthor: ${msg.author},\nBody: ${msg.body ? msg.body.substring(0, 50) + '...' : '[No body]'}\n ---------\n`);
 
 
              // --- Decidir qué handler llamar basado en el tipo de mensaje ---
              // Usamos un switch para manejar diferentes tipos de mensajes de forma clara
              switch (msg.type) {
                case 'chat': // Tipo para mensajes de texto normales
-                 console.log(`Router: Ruta a handleTextMessage para cliente ${clientId}, remitente: "${displayIdentifier}"`); 
+                 logger.log(`Router: Ruta a handleTextMessage para cliente ${clientId}, remitente: "${displayIdentifier}"`); 
                  // Llama al handler específico para mensajes de texto
                  // Pasa la instancia específica del cliente que recibió el mensaje
                  await handleTextMessage(client, msg, senderInfo); // Usa 'client' de este closure
                  break;
 
                case 'image': // Tipo para mensajes con imagen
-                 console.log(`Router: Ruta a handleImageMessage para cliente ${clientId}, remitente: ${displayIdentifier}`);
+                 logger.log(`Router: Ruta a handleImageMessage para cliente ${clientId}, remitente: ${displayIdentifier}`);
                  // Llama al handler específico para mensajes de imagen
                  // Pasa la instancia específica del cliente que recibió el mensaje
                  await handleImageMessage(client, msg, senderInfo); // Usa 'client' de este closure
@@ -203,43 +202,43 @@ function getOrCreateClient(clientId) {
                // --- Añade más casos aquí para otros tipos de mensajes si los manejas ---
                // Asegúrate de pasar 'client', 'msg', 'senderInfo' a tus handlers
                // case 'video':
-               //   console.log(`Router: Ruta a handleVideoMessage para ${displayIdentifier}`);
+               //   logger.log(`Router: Ruta a handleVideoMessage para ${displayIdentifier}`);
                //   await handleVideoMessage(client, msg, senderInfo);
                //   break;
                // case 'sticker':
-               //   console.log(`Router: Ruta a handleStickerMessage para ${displayIdentifier}`);
+               //   logger.log(`Router: Ruta a handleStickerMessage para ${displayIdentifier}`);
                //   await handleStickerMessage(client, msg, senderInfo);
                //   break;
                // case 'document':
-               //    console.log(`Router: Ruta a handleDocumentMessage para ${displayIdentifier}`);
+               //    logger.log(`Router: Ruta a handleDocumentMessage para ${displayIdentifier}`);
                //    await handleDocumentMessage(client, msg, senderInfo);
                //    break;
                // case 'ptt':
-               //    console.log(`Router: Ruta a Notas de voz para ${displayIdentifier}`);
+               //    logger.log(`Router: Ruta a Notas de voz para ${displayIdentifier}`);
                //    await handleAudioMessage(client, msg, senderInfo);
                //    break;
                // case 'location':
-               //    console.log(`Router: Ruta a handleLocationMessage para ${displayIdentifier}`);
+               //    logger.log(`Router: Ruta a handleLocationMessage para ${displayIdentifier}`);
                //    await handleLocationMessage(client, msg, senderInfo);
                //    break;
                default:
                  // Este bloque maneja cualquier otro tipo de mensaje no listado arriba
-                 console.log(`Router: Tipo de mensaje ${msg.type} no manejado para cliente ${clientId}, recibido de ${displayIdentifier}.`);
+                 logger.log(`Router: Tipo de mensaje ${msg.type} no manejado para cliente ${clientId}, recibido de ${displayIdentifier}.`);
                  break;
              }
         } catch (error) {
-            console.error(`Router: Error general al procesar mensaje de ${displayIdentifier} (Cliente ID: ${clientId}, Tipo: ${msg.type}):`, error);
+            logger.error(`Router: Error general al procesar mensaje de ${displayIdentifier} (Cliente ID: ${clientId}, Tipo: ${msg.type}):`, error);
         }
     });
 
     // --- Otros manejadores de eventos si los necesitas ---
     client.on('state', (state) => {
-        console.log(`[${clientId}] State changed: ${state}`);
+        logger.log(`[${clientId}] State changed: ${state}`);
         // sessions[clientId].status = state; // Opcional: mantener el estado sincronizado
     });
 
     client.on('change_state', state => {
-        console.log(`[${clientId}] Change state: ${state}`);
+        logger.log(`[${clientId}] Change state: ${state}`);
     });
 
     client.on('disconnected', (reason) => {
@@ -247,7 +246,7 @@ function getOrCreateClient(clientId) {
         sessions[clientId].qr = null; // Limpiar QR al desconectar
         sessions[clientId].phoneNumber = null; // Limpiar número al desconectar
         sessions[clientId].qrBase64 = null; // Limpiar el QR Base64
-        console.log(`[${clientId}] Client was disconnected!`, reason);
+        logger.log(`[${clientId}] Client was disconnected!`, reason);
         // Aquí podrías decidir si intentar reconectar automáticamente:
         // client.initialize();
     });
@@ -278,16 +277,16 @@ function initializeClient(clientId) {
     const session = sessions[clientId];
     if (session && session.client) {
         if (session.status === 'ready') {
-            console.log(`[${clientId}] Client is already ready.`);
+            logger.log(`[${clientId}] Client is already ready.`);
         } else if (session.status === 'initializing') {
-             console.log(`[${clientId}] Client is already initializing.`);
+             logger.log(`[${clientId}] Client is already initializing.`);
         }
         else {
-             console.log(`[${clientId}] Initializing client...`);
+             logger.log(`[${clientId}] Initializing client...`);
              session.client.initialize(); // Inicia el proceso de conexión/autenticación
         }
     } else {
-        console.warn(`[${clientId}] Client instance not found for initialization. Creating and initializing.`);
+        logger.warn(`[${clientId}] Client instance not found for initialization. Creating and initializing.`);
         // Si la instancia no existe, la creamos y luego la inicializamos
         getOrCreateClient(clientId).initialize();
     }
@@ -300,7 +299,7 @@ function initializeClient(clientId) {
 async function resetClientSession(clientId) {
     const session = sessions[clientId];
     if (session && session.client) {
-        console.log(`Attempting to reset session for ${clientId}`);
+        logger.log(`Attempting to reset session for ${clientId}`);
         try {
             // Desconectar el cliente
             // Usamos un timeout por si destroy() se queda colgado
@@ -309,33 +308,33 @@ async function resetClientSession(clientId) {
                 setTimeout(() => reject(new Error('Client destroy timed out')), 10000) // 10 segundos de timeout
             );
             await Promise.race([destroyPromise, timeoutPromise]);
-            console.log(`Client ${clientId} destroyed.`);
+            logger.log(`Client ${clientId} destroyed.`);
 
             // Eliminar los archivos de sesión local
             const sessionDir = path.join(__dirname, '.wwebjs_auth', `session-${clientId}`);
              if (fs.existsSync(sessionDir)) {
-                console.log(`Removing session files for ${clientId} at ${sessionDir}`);
+                logger.log(`Removing session files for ${clientId} at ${sessionDir}`);
                  fs.rmSync(sessionDir, { recursive: true, force: true });
              }
 
             // Eliminar la entrada de la sesión del objeto en memoria
             delete sessions[clientId];
-            console.log(`Session data for ${clientId} removed from memory.`);
+            logger.log(`Session data for ${clientId} removed from memory.`);
 
             // No volvemos a crear el cliente aquí; se creará de nuevo cuando se llame a /login con ese código.
 
         } catch (error) {
-            console.error(`Error resetting session for ${clientId}:`, error);
+            logger.error(`Error resetting session for ${clientId}:`, error);
              // Si destroy falla o hay otro error, al menos intenta eliminar los archivos y la entrada en memoria
              const sessionDir = path.join(__dirname, '.wwebjs_auth', `session-${clientId}`);
              if (fs.existsSync(sessionDir)) {
-                console.log(`Attempting to remove session files after error for ${clientId}`);
+                logger.log(`Attempting to remove session files after error for ${clientId}`);
                  fs.rmSync(sessionDir, { recursive: true, force: true });
              }
              delete sessions[clientId];
         }
     } else {
-        console.warn(`Client ${clientId} not found or not initialized for reset.`);
+        logger.warn(`Client ${clientId} not found or not initialized for reset.`);
     }
 }
 
