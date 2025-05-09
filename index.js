@@ -117,6 +117,7 @@ app.post('/verificar-clave', (req, res) => {
 
 // **Aplica el middleware de autenticación a todas las rutas bajo /api**
 app.use("/api", apiRoutes);
+//app.use("/api", authenticateToken,apiRoutes);
 
 const hostname = '0.0.0.0'; 
 

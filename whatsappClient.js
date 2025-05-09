@@ -16,6 +16,79 @@ require('dotenv').config();
 // LocalAuth creará subcarpetas aquí con el nombre 'session-' + clientId
 const SESSIONS_DIR = './.wwebjs_auth';
 
+
+/**
+ * Obtiene los clientIds de las sesiones cuyos archivos existen físicamente en el directorio de LocalAuth.
+ * Esto no garantiza que las sesiones estén actualmente cargadas en memoria ('sessions' object)
+ * o que los archivos correspondientes a un 'ready' state sean válidos,
+ * solo que LocalAuth ha creado una carpeta con ese nombre de sesión.
+ * @returns {string[]} Un array de clientIds encontrados en el directorio de sesiones.
+ *                    Retorna un array vacío si el directorio no existe o hay un error.
+ */
+function getClientIdsFromDisk() {
+    const sessionIds = [];
+    // Construye la ruta completa al directorio de sesiones
+    // __dirname es la ruta del directorio del archivo actual (whatsappClient.js)
+    const baseDir = path.join(__dirname, SESSIONS_DIR);
+
+    // Verificar si el directorio de sesiones existe antes de intentar leerlo
+    if (!fs.existsSync(baseDir)) {
+        logger.warn(`getClientIdsFromDisk: Session directory not found: ${baseDir}`);
+        return []; // Retorna un array vacío si el directorio no existe
+    }
+
+    try {
+        // Leer el contenido del directorio base
+        const entries = fs.readdirSync(baseDir);
+
+        // Iterar sobre cada entrada en el directorio
+        entries.forEach(entry => {
+            const entryPath = path.join(baseDir, entry);
+            try {
+                // Obtener información del sistema sobre la entrada (si es un archivo, directorio, etc.)
+                const stat = fs.statSync(entryPath);
+
+                // LocalAuth guarda las sesiones en subcarpetas que empiezan con 'session-'
+                // Verificamos si es un directorio Y si su nombre empieza con 'session-'
+                if (stat.isDirectory() && entry.startsWith('session-')) {
+                    // Extraer el clientId del nombre de la carpeta (quitarle 'session-')
+                    const clientId = entry.substring('session-'.length);
+                    // Opcional: Podrías añadir aquí una validación básica del clientId
+                    sessionIds.push(clientId);
+                }
+            } catch (entryErr) {
+                logger.error(`getClientIdsFromDisk: Error accessing entry ${entry}:`, entryErr);
+                // Continuar con la siguiente entrada si hay un error al leer una
+            }
+        });
+
+    } catch (error) {
+        logger.error(`getClientIdsFromDisk: Error reading session directory ${baseDir}:`, error);
+        // Retorna un array vacío si hay un error general al leer el directorio
+        return [];
+    }
+
+    return sessionIds;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Objeto para almacenar la información de cada cliente/sesión en memoria
 // La clave será el código arbitrario (el clientId)
 // Cada entrada contendrá: { client: ClientInstance, status: string, phoneNumber: string | null, qr: string | null }
@@ -374,5 +447,6 @@ module.exports = {
     resetClientSession,
     getAllClientIds,
     getAllSessionsInfo,
-    // No exportamos 'sessions' ni 'getOrCreateClient' directamente para controlar el acceso
+    getClientIdsFromDisk
+   
 };

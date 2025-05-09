@@ -3,7 +3,22 @@
 const {
     getSessionInfo,     // Para obtener el estado de la sesión
     initializeClient,   // Para iniciar el proceso de conexión/autenticación
+    getClientIdsFromDisk
 } = require("../whatsappClient"); // <-- Importamos desde tu archivo whatsappClient.js
+const fs = require('fs'); // Para manejar archivos (necesario para LocalAuth)
+const path = require('path'); // Para manejar rutas de archivos
+
+
+const logger = require("../utils/logger");
+
+const getAllSessionsInfo = async (req, res) => {
+    const sessions =  getClientIdsFromDisk();
+    return res.json(sessions);
+}
+
+
+
+
 
 /**
  * Maneja la petición POST a /login/:codeSession.
@@ -14,16 +29,16 @@ const {
  */
 const loginClient = async (req, res) => {
     // 1. Obtener el código de sesión de los parámetros de la URL
-    const codeSession = req.params.codeSession;
+    const codeSession = req.body.codeSession || undefined;
 
     // Validación básica del parámetro de ruta
     if (!codeSession) {
-        return res.status(400).json({ error: 'Debes enviarme un codigo de session en la URL (ej. /login/12345678)' });
+        return res.status(400).json({ error: 'Debes enviarme un codigo de session en el body (ej. 12345678)' });
     }
 
-    // TODO: Opcional: Validar el formato del codeSession (ej. 8 dígitos)
-    if (!/^\d{8}$/.test(codeSession)) {
-        return res.status(400).json({ error: 'Formato de CodeSession inválido. Debe ser de 8 dígitos.' });
+    // TODO: Opcional: Validar el formato del code (ej. mínimo 8 dígitos numéricos)
+    if (!/^\d{8,}$/.test(codeSession)) {
+        return res.status(400).json({ error: 'Formato de código inválido. Debe tener al menos 8 dígitos y contener solo números.' });
     }
 
     console.log(`Codigo recibido para login: ${codeSession}`);
@@ -77,16 +92,16 @@ const loginClient = async (req, res) => {
  */const getQrCodeController = (req, res) => {
     // 1. Obtener el código de sesión de los parámetros de la URL
     // Asegúrate de que el nombre del parámetro en la URL coincida con el de la ruta (ej. /qr/:code)
-    const code = req.params.codeSession; // Usamos 'code' si la ruta es /qr/:code
+    const code = req.body.codeSession  || undefined; // Usamos 'code' si la ruta es /qr/:code
 
     // Validación básica del parámetro de ruta
     if (!code) {
-        return res.status(400).json({ error: 'Debes enviar un codigo de session en la URL (ej. /qr/12345678)' });
+        return res.status(400).json({ error: 'Debes enviar un codigo de session en el BODY (ej. /qr/12345678)' });
     }
 
-    // TODO: Opcional: Validar el formato del code (ej. 8 dígitos)
-    if (!/^\d{8}$/.test(code)) {
-        return res.status(400).json({ error: 'Formato de código inválido. Debe ser de 8 dígitos.' });
+    // TODO: Opcional: Validar el formato del code (ej. mínimo 8 dígitos numéricos)
+    if (!/^\d{8,}$/.test(code)) {
+        return res.status(400).json({ error: 'Formato de código inválido. Debe tener al menos 8 dígitos y contener solo números.' });
     }
 
     console.log(`Received QR request for code: ${code}`);
@@ -139,9 +154,33 @@ showLoginView = async (req, res) => {
     res.render('loginClient' , { serverBaseUrl: serverBaseUrl });
 };
 
+const deleteSession = async (req, res) => {
+    const codeSession = req.body.codeSession || undefined;    
+    if(!codeSession){
+        return res.status(400).json({ error: 'Debes enviar un codigo de session en el BODY (ej. 12345678)' });
+    }
+
+    //borrar session local
+    const sessionDir = path.join(__dirname, '../.wwebjs_auth/', `session-${codeSession}`);
+     if (fs.existsSync(sessionDir)) {
+        logger.log(`[${codeSession}] Removing session files for ${codeSession} at ${sessionDir}`);
+         fs.rmSync(sessionDir, { recursive: true, force: true });
+     }else{
+        
+        logger.error(fs.existsSync(sessionDir))
+        return res.status(404).json({ error: 'Session not found' });
+     }
+
+     return res.json({ success: true, message: 'Sesión borrada correctamente' });
+}
+
+
+
 // Exportar la función controladora para ser utilizada en la definición de rutas de Express
 module.exports = {
     loginClient,
     getQrCodeController, // <-- Exportamos la nueva función controladora
-    showLoginView
+    showLoginView,
+    getAllSessionsInfo,
+    deleteSession
 };
