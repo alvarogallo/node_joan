@@ -12,7 +12,7 @@ const path = require('path'); // Para manejar rutas de archivos
 const logger = require("../utils/logger");
 
 const getAllSessionsInfo = async (req, res) => {
-    const sessions =  getClientIdsFromDisk();
+    const sessions = getClientIdsFromDisk();
     return res.json(sessions);
 }
 
@@ -92,7 +92,7 @@ const loginClient = async (req, res) => {
  */const getQrCodeController = (req, res) => {
     // 1. Obtener el código de sesión de los parámetros de la URL
     // Asegúrate de que el nombre del parámetro en la URL coincida con el de la ruta (ej. /qr/:code)
-    const code = req.body.codeSession  || undefined; // Usamos 'code' si la ruta es /qr/:code
+    const code = req.body.codeSession || undefined; // Usamos 'code' si la ruta es /qr/:code
 
     // Validación básica del parámetro de ruta
     if (!code) {
@@ -141,37 +141,24 @@ const loginClient = async (req, res) => {
 };
 
 
-//MOstrando la vista para el login.
-showLoginView = async (req, res) => {
-
-   // Obtener el protocolo (http o https)
-   const protocol = req.protocol;
-   // Obtener el host (nombre de dominio o IP + puerto)
-   const host = req.get('host'); // req.get('host') es preferible
-    console.log("HOST ME DICE QUE ES: " + host);
-   // Construir la URL base del servidor
-   const serverBaseUrl = `${protocol}://${host}`;
-    res.render('loginClient' , { serverBaseUrl: serverBaseUrl });
-};
-
 const deleteSession = async (req, res) => {
-    const codeSession = req.body.codeSession || undefined;    
-    if(!codeSession){
+    const codeSession = req.body.codeSession || undefined;
+    if (!codeSession) {
         return res.status(400).json({ error: 'Debes enviar un codigo de session en el BODY (ej. 12345678)' });
     }
 
     //borrar session local
     const sessionDir = path.join(__dirname, '../.wwebjs_auth/', `session-${codeSession}`);
-     if (fs.existsSync(sessionDir)) {
+    if (fs.existsSync(sessionDir)) {
         logger.log(`[${codeSession}] Removing session files for ${codeSession} at ${sessionDir}`);
-         fs.rmSync(sessionDir, { recursive: true, force: true });
-     }else{
-        
+        fs.rmSync(sessionDir, { recursive: true, force: true });
+    } else {
+
         logger.error(fs.existsSync(sessionDir))
         return res.status(404).json({ error: 'Session not found' });
-     }
+    }
 
-     return res.json({ success: true, message: 'Sesión borrada correctamente' });
+    return res.json({ success: true, message: 'Sesión borrada correctamente' });
 }
 
 
@@ -180,7 +167,6 @@ const deleteSession = async (req, res) => {
 module.exports = {
     loginClient,
     getQrCodeController, // <-- Exportamos la nueva función controladora
-    showLoginView,
     getAllSessionsInfo,
     deleteSession
 };
