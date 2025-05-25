@@ -191,9 +191,14 @@ function getOrCreateClient(clientId) {
     client.on('qr', (qr) => {
         sessions[clientId].status = 'qr_received';
         sessions[clientId].qr = qr; // Almacenar el string del QR original
- 
+
         logger.log(`[${clientId}] QR STRING RECEIVED`);
-        qrcodeTerminal.generate(qr, { small: true }); // Mostrar en terminal (opcional)
+        
+        // *** MOSTRAR EL TOKEN/STRING DEL QR EN LA TERMINAL ***
+        console.log(`\n=== TOKEN QR PARA CLIENTE ${clientId} ===`);
+        console.log(qr); // ← AQUÍ SE MUESTRA EL STRING/TOKEN DEL QR
+        console.log(`=== FIN TOKEN QR ===\n`); 
+        //qrcodeTerminal.generate(qr, { small: true }); // Mostrar en terminal (opcional)
     });
 
 
