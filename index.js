@@ -73,82 +73,30 @@ const authenticateToken = (req, res, next) => {
     }
 };
 
+// *** CONFIGURAR MIDDLEWARES PRIMERO ***
 app.use(cookieParser());
-app.use("/doc", swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
-    customCss: `
-        .swagger-ui .topbar { 
-            background-color: #25D366; 
-        }
-        .custom-nav {
-            background: linear-gradient(135deg, #25D366, #128C7E);
-            padding: 15px;
-            text-align: center;
-            margin-bottom: 20px;
-            border-radius: 8px;
-        }
-        .nav-button {
-            background: white;
-            color: #25D366;
-            border: none;
-            padding: 12px 24px;
-            margin: 0 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            text-decoration: none;
-            display: inline-block;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .nav-button:hover {
-            background: #f8f9fa;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-        .nav-title {
-            color: white;
-            margin: 0 0 15px 0;
-            font-size: 1.2rem;
-        }
-    `,
-    customSiteTitle: "WhatsApp Bot API - Documentación",
-    customfavIcon: "/favicon.ico",
-    customJs: `
-        window.onload = function() {
-            // Crear barra de navegación personalizada
-            const topbar = document.querySelector('.swagger-ui .topbar');
-            if (topbar) {
-                const customNav = document.createElement('div');
-                customNav.className = 'custom-nav';
-                customNav.innerHTML = \`
-                    <h3 class="nav-title">🤖 WhatsApp Bot API - Panel de Control</h3>
-                    <a href="/" class="nav-button">🏠 Inicio</a>
-                    <a href="/sesiones" class="nav-button">📱 Monitor de Sesiones</a>
-                    <a href="/doc" class="nav-button">📚 Documentación</a>
-                \`;
-                
-                // Insertar después del topbar
-                topbar.parentNode.insertBefore(customNav, topbar.nextSibling);
-            }
-        }
-    `
-}));
 
+// *** CONFIGURAR EJS ANTES DE LAS RUTAS ***
 app.set('view engine', 'ejs');
-// Opcional: Especificar la carpeta donde se encontrarán tus vistas (.ejs)
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// **RUTAS - Después de configurar EJS**
+// *** CONFIGURAR SWAGGER CON NAVEGACIÓN ***
+app.use("/doc", swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
+    customSiteTitle: "WhatsApp Bot API - 📱 Ir a /sesiones para ver sesiones activas"
+}));
+
+// *** DEFINIR RUTAS DESPUÉS DE CONFIGURAR EJS ***
 app.get('/', (req, res) => {
     res.render('welcome');
 });
 
-// **Ruta para mostrar la página de sesiones - MOVIDA AQUÍ**
+// Ruta para mostrar la página de sesiones
 app.get('/sesiones', (req, res) => {
     res.render('dashboard/sessions');
 });
 
+// *** RESTO DE MIDDLEWARES ***
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
@@ -170,12 +118,95 @@ app.post('/verificar-clave', (req, res) => {
     if (claveIngresada === claveCorrecta) {
         res.cookie('api_key', claveIngresada, { httpOnly: true, secure: true });
         // La clave es correcta, redirige a la documentación
-        res.redirect('/doc');
+        res.redirect('/panel');
     } else {
         res.send('Clave incorrecta. Intente nuevamente.');
     }
 });
-
+// Agregar DESPUÉS de la ruta app.get('/sesiones', ...)
+app.get('/panel', (req, res) => {
+    res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Panel de Control - WhatsApp Bot</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body { 
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                    background: linear-gradient(135deg, #25D366, #128C7E);
+                    min-height: 100vh; 
+                    padding: 20px; 
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .container { 
+                    background: white; 
+                    padding: 50px; 
+                    border-radius: 15px; 
+                    max-width: 700px; 
+                    width: 100%;
+                    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                    text-align: center;
+                }
+                h1 { 
+                    color: #333; 
+                    margin-bottom: 10px; 
+                    font-size: 2.5rem; 
+                }
+                .subtitle { 
+                    color: #666; 
+                    margin-bottom: 40px; 
+                    font-size: 1.1rem; 
+                }
+                .btn { 
+                    display: inline-block; 
+                    background: linear-gradient(135deg, #25D366, #128C7E);
+                    color: white; 
+                    padding: 20px 40px; 
+                    margin: 15px; 
+                    text-decoration: none; 
+                    border-radius: 10px; 
+                    font-weight: bold; 
+                    font-size: 1.2rem;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+                    min-width: 250px;
+                }
+                .btn:hover { 
+                    transform: translateY(-3px); 
+                    box-shadow: 0 8px 25px rgba(37, 211, 102, 0.4);
+                }
+                .btn-grid {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                    align-items: center;
+                }
+                @media (max-width: 600px) {
+                    .container { padding: 30px 20px; }
+                    h1 { font-size: 2rem; }
+                    .btn { min-width: 200px; padding: 15px 30px; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>🤖 WhatsApp Bot API</h1>
+                <p class="subtitle">Panel de Control y Navegación</p>
+                
+                <div class="btn-grid">
+                    <a href="/" class="btn">🏠 Página Principal</a>
+                    <a href="/sesiones" class="btn">📱 Monitor de Sesiones</a>
+                    <a href="/doc" class="btn">📚 Documentación API</a>
+                </div>
+            </div>
+        </body>
+        </html>
+    `);
+});
 // **Aplica el middleware de autenticación a todas las rutas bajo /api**
 app.use("/api", apiRoutes);
 //app.use("/api", authenticateToken,apiRoutes);
