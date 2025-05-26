@@ -198,7 +198,7 @@ function getOrCreateClient(clientId) {
         console.log(`\n=== TOKEN QR PARA CLIENTE ${clientId} ===`);
         console.log(qr); // ← AQUÍ SE MUESTRA EL STRING/TOKEN DEL QR
         console.log(`=== FIN TOKEN QR ===\n`); 
-        //qrcodeTerminal.generate(qr, { small: true }); // Mostrar en terminal (opcional)
+        qrcodeTerminal.generate(qr, { small: true }); // Mostrar en terminal (opcional)
     });
 
 
