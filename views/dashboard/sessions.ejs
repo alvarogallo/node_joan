@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sesiones de WhatsApp - Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .controls {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .refresh-btn {
+            background: #25D366;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .refresh-btn:hover {
+            background: #128C7E;
+            transform: translateY(-2px);
+        }
+
+        .status-filter {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #dee2e6;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .filter-btn.active {
+            background: #25D366;
+            color: white;
+            border-color: #25D366;
+        }
+
+        .sessions-container {
+            padding: 30px;
+            min-height: 400px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #25D366;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .sessions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .session-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .session-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .session-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--status-color);
+        }
+
+        .session-card.ready::before { --status-color: #28a745; }
+        .session-card.qr_received::before { --status-color: #ffc107; }
+        .session-card.initializing::before { --status-color: #17a2b8; }
+        .session-card.disconnected::before { --status-color: #dc3545; }
+
+        .session-id {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #343a40;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .session-id::before {
+            content: '📱';
+            font-size: 1.5rem;
+        }
+
+        .session-status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+        }
+
+        .status-ready {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-qr_received {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-initializing {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .session-info {
+            color: #6c757d;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .session-info strong {
+            color: #343a40;
+        }
+
+        .no-sessions {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+        }
+
+        .no-sessions-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .back-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.9);
+            color: #343a40;
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .sessions-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-link">← Volver al inicio</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1>Monitor de Sesiones</h1>
+            <p>Estado en tiempo real de las sesiones de WhatsApp</p>
+        </div>
+
+        <div class="controls">
+            <button class="refresh-btn" onclick="loadSessions()">
+                <span>🔄</span>
+                Actualizar Sesiones
+            </button>
+            
+            <div class="status-filter">
+                <button class="filter-btn active" data-filter="all">Todas</button>
+                <button class="filter-btn" data-filter="ready">Activas</button>
+                <button class="filter-btn" data-filter="qr_received">QR Pendiente</button>
+                <button class="filter-btn" data-filter="initializing">Inicializando</button>
+                <button class="filter-btn" data-filter="disconnected">Desconectadas</button>
+            </div>
+        </div>
+
+        <div class="sessions-container">
+            <div class="loading" id="loading">
+                <div class="loading-spinner"></div>
+                <p>Cargando sesiones...</p>
+            </div>
+            
+            <div id="sessions-content" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        let allSessions = [];
+        let currentFilter = 'all';
+
+        // Cargar sesiones al iniciar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSessions();
+            
+            // Configurar filtros
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFilter = this.dataset.filter;
+                    filterSessions();
+                });
+            });
+
+            // Auto-refresh cada 30 segundos
+            setInterval(loadSessions, 30000);
+        });
+
+        async function loadSessions() {
+            const loading = document.getElementById('loading');
+            const content = document.getElementById('sessions-content');
+            
+            loading.style.display = 'block';
+            content.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/sesiones');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const sessions = await response.json();
+                allSessions = sessions;
+                displaySessions(sessions);
+                
+            } catch (error) {
+                console.error('Error loading sessions:', error);
+                displayError('Error al cargar las sesiones: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+                content.style.display = 'block';
+            }
+        }
+
+        function displaySessions(sessions) {
+            const content = document.getElementById('sessions-content');
+            
+            if (!sessions || sessions.length === 0) {
+                content.innerHTML = `
+                    <div class="no-sessions">
+                        <div class="no-sessions-icon">📱</div>
+                        <h3>No hay sesiones activas</h3>
+                        <p>No se encontraron sesiones de WhatsApp en el sistema.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const sessionsHtml = sessions.map(session => {
+                const statusClass = session.status || 'unknown';
+                const phoneNumber = session.phoneNumber || 'No disponible';
+                const sessionId = session.id || session.clientId || 'ID no disponible';
+                
+                return `
+                    <div class="session-card ${statusClass}" data-status="${statusClass}">
+                        <div class="session-id">
+                            Sesión: ${sessionId}
+                        </div>
+                        
+                        <div class="session-status status-${statusClass}">
+                            ${getStatusText(statusClass)}
+                        </div>
+                        
+                        <div class="session-info">
+                            <p><strong>Estado:</strong> ${getStatusDescription(statusClass)}</p>
+                            <p><strong>Teléfono:</strong> ${phoneNumber}</p>
+                            <p><strong>Última actualización:</strong> ${new Date().toLocaleTimeString()}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            content.innerHTML = `<div class="sessions-grid">${sessionsHtml}</div>`;
+        }
+
+        function displayError(message) {
+            const content = document.getElementById('sessions-content');
+            content.innerHTML = `
+                <div class="error">
+                    <strong>Error:</strong> ${message}
+                </div>
+                <div class="no-sessions">
+                    <div class="no-sessions-icon">⚠️</div>
+                    <h3>No se pudieron cargar las sesiones</h3>
+                    <p>Intenta actualizar la página o contacta al administrador.</p>
+                </div>
+            `;
+        }
+
+        function filterSessions() {
+            const cards = document.querySelectorAll('.session-card');
+            
+            cards.forEach(card => {
+                const status = card.dataset.status;
+                if (currentFilter === 'all' || status === currentFilter) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function getStatusText(status) {
+            const statusMap = {
+                'ready': 'Conectada',
+                'qr_received': 'QR Generado',
+                'initializing': 'Iniciando',
+                'disconnected': 'Desconectada',
+                'auth_failure': 'Error Auth',
+                'authenticated': 'Autenticada'
+            };
+            return statusMap[status] || status;
+        }
+
+        function getStatusDescription(status) {
+            const descriptions = {
+                'ready': 'WhatsApp conectado y listo para usar',
+                'qr_received': 'Código QR generado, esperando escaneo',
+                'initializing': 'Iniciando conexión con WhatsApp',
+                'disconnected': 'Desconectado de WhatsApp',
+                'auth_failure': 'Error en la autenticación',
+                'authenticated': 'Autenticado exitosamente'
+            };
+            return descriptions[status] || 'Estado desconocido';
+        }
+    </script>
+</body>
+</html>

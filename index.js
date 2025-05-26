@@ -72,6 +72,10 @@ const authenticateToken = (req, res, next) => {
         return res.status(403).json({ message: 'Token inválido' });
     }
 };
+//alvaro
+app.get('/sesiones', (req, res) => {
+    res.render('dashboard/sessions');
+});
 
 
 app.use(cookieParser());

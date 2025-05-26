@@ -8,17 +8,25 @@ const {
 const fs = require('fs'); // Para manejar archivos (necesario para LocalAuth)
 const path = require('path'); // Para manejar rutas de archivos
 
-
 const logger = require("../utils/logger");
 
+// *** MODO TESTING ***
+const TESTING_MODE = process.env.TESTING_MODE === 'true';
+
 const getAllSessionsInfo = async (req, res) => {
+    if (TESTING_MODE) {
+        console.log('[TESTING MODE] getAllSessionsInfo - Retornando datos mock');
+        const mockSessions = [
+            { id: '12345678', status: 'ready', phoneNumber: 'TEST_PHONE_1' },
+            { id: '87654321', status: 'qr_received', phoneNumber: null },
+            { id: '11111111', status: 'initializing', phoneNumber: null }
+        ];
+        return res.json(mockSessions);
+    }
+    
     const sessions = getClientIdsFromDisk();
     return res.json(sessions);
 }
-
-
-
-
 
 /**
  * Maneja la petición POST a /login/:codeSession.
@@ -44,6 +52,39 @@ const loginClient = async (req, res) => {
     console.log(`Codigo recibido para login: ${codeSession}`);
 
     try {
+        // *** MODO TESTING ***
+        if (TESTING_MODE) {
+            console.log(`[${codeSession}] MODO TESTING ACTIVADO - WhatsApp deshabilitado`);
+            
+            // Simular diferentes estados para testing basado en el último dígito del code
+            const lastDigit = parseInt(codeSession.slice(-1));
+            
+            if (lastDigit % 3 === 0) {
+                // Simular login exitoso
+                return res.json({
+                    login: true,
+                    status: 'ready',
+                    phoneNumber: `TEST_PHONE_${codeSession}`,
+                    message: 'TESTING MODE - Login simulado exitoso'
+                });
+            } else if (lastDigit % 3 === 1) {
+                // Simular necesidad de QR
+                return res.json({
+                    login: false,
+                    status: 'qr_received',
+                    message: 'TESTING MODE - QR requerido (simulado)'
+                });
+            } else {
+                // Simular inicializando
+                return res.json({
+                    login: false,
+                    status: 'initializing',
+                    message: 'TESTING MODE - Inicializando (simulado)'
+                });
+            }
+        }
+
+        // *** CÓDIGO NORMAL DE WHATSAPP (cuando TESTING_MODE = false) ***
         // 2. Obtener la información actual de la sesión usando la función importada
         let sessionInfo = getSessionInfo(codeSession);
 
@@ -81,15 +122,14 @@ const loginClient = async (req, res) => {
     }
 };
 
-
-
 /**
  * Maneja la petición GET a /qr/:code.
  * Busca la sesión por el código, y devuelve el string de datos del código QR si está disponible,
  * o un estado indicando que no.
  * @param {object} req - Objeto de petición de Express.
  * @param {object} res - Objeto de respuesta de Express.
- */const getQrCodeController = (req, res) => {
+ */
+const getQrCodeController = (req, res) => {
     // 1. Obtener el código de sesión de los parámetros de la URL
     // Asegúrate de que el nombre del parámetro en la URL coincida con el de la ruta (ej. /qr/:code)
     const code = req.body.codeSession || undefined; // Usamos 'code' si la ruta es /qr/:code
@@ -106,6 +146,21 @@ const loginClient = async (req, res) => {
 
     console.log(`Received QR request for code: ${code}`);
 
+    // *** MODO TESTING ***
+    if (TESTING_MODE) {
+        console.log(`[${code}] MODO TESTING - QR simulado`);
+        
+        // Generar QR mock realista
+        const mockQR = `2@ABCDEFGH123456789IJKLMNOP,QRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz+/=_MOCK_QR_FOR_TESTING_${code}_${Date.now()}`;
+        
+        return res.json({
+            status: 'qr_received',
+            qr: mockQR,
+            message: 'TESTING MODE - QR simulado generado. Puedes usar este string para generar QR en tu cliente.'
+        });
+    }
+
+    // *** CÓDIGO NORMAL DE WHATSAPP ***
     // 2. Obtener la información de la sesión usando la función importada
     const sessionInfo = getSessionInfo(code);
 
@@ -140,28 +195,34 @@ const loginClient = async (req, res) => {
     }
 };
 
-
 const deleteSession = async (req, res) => {
     const codeSession = req.body.codeSession || undefined;
     if (!codeSession) {
         return res.status(400).json({ error: 'Debes enviar un codigo de session en el BODY (ej. 12345678)' });
     }
 
+    // *** MODO TESTING ***
+    if (TESTING_MODE) {
+        console.log(`[${codeSession}] MODO TESTING - Eliminación de sesión simulada`);
+        return res.json({ 
+            success: true, 
+            message: 'TESTING MODE - Sesión eliminada (simulado)' 
+        });
+    }
+
+    // *** CÓDIGO NORMAL ***
     //borrar session local
     const sessionDir = path.join(__dirname, '../.wwebjs_auth/', `session-${codeSession}`);
     if (fs.existsSync(sessionDir)) {
         logger.log(`[${codeSession}] Removing session files for ${codeSession} at ${sessionDir}`);
         fs.rmSync(sessionDir, { recursive: true, force: true });
     } else {
-
         logger.error(fs.existsSync(sessionDir))
         return res.status(404).json({ error: 'Session not found' });
     }
 
     return res.json({ success: true, message: 'Sesión borrada correctamente' });
 }
-
-
 
 // Exportar la función controladora para ser utilizada en la definición de rutas de Express
 module.exports = {
