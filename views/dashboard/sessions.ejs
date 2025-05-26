@@ -214,6 +214,55 @@
             color: #343a40;
         }
 
+        .memory-info {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+            border-left: 4px solid #25D366;
+        }
+
+        .memory-bar {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 8px;
+            margin: 5px 0;
+            overflow: hidden;
+        }
+
+        .memory-fill {
+            background: linear-gradient(90deg, #28a745, #ffc107, #dc3545);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .system-stats {
+            background: #343a40;
+            color: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #25D366;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
         .no-sessions {
             text-align: center;
             padding: 50px;
@@ -252,6 +301,157 @@
         .back-link:hover {
             background: white;
             transform: translateY(-2px);
+        }
+
+        .session-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-delete:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+        }
+
+        .btn-delete:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-info:hover {
+            background: #138496;
+            transform: translateY(-1px);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .modal-header {
+            color: #dc3545;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .modal-body {
+            margin-bottom: 30px;
+            color: #343a40;
+            line-height: 1.5;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn-confirm {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-confirm:hover {
+            background: #c82333;
+        }
+
+        .btn-cancel {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cancel:hover {
+            background: #5a6268;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 1001;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.error {
+            background: #dc3545;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
         }
 
         @media (max-width: 768px) {
@@ -305,13 +505,40 @@
                 <p>Cargando sesiones...</p>
             </div>
             
-            <div id="sessions-content" style="display: none;"></div>
+            <div id="sessions-content" style="display: none;">
+                <div id="system-stats" class="system-stats" style="display: none;"></div>
+                <div id="sessions-grid"></div>
+            </div>
         </div>
     </div>
+
+    <!-- Modal de confirmación -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>⚠️</span>
+                Confirmar Eliminación
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que quieres eliminar la sesión <strong id="sessionToDelete"></strong>?</p>
+                <p style="color: #dc3545; font-size: 0.9rem; margin-top: 10px;">
+                    Esta acción no se puede deshacer y eliminará todos los datos de la sesión.
+                </p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeDeleteModal()">Cancelar</button>
+                <button class="btn-confirm" onclick="confirmDelete()">Eliminar Sesión</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast de notificaciones -->
+    <div id="toast" class="toast"></div>
 
     <script>
         let allSessions = [];
         let currentFilter = 'all';
+        let sessionToDeleteId = null;
 
         // Cargar sesiones al iniciar la página
         document.addEventListener('DOMContentLoaded', function() {
@@ -329,6 +556,14 @@
 
             // Auto-refresh cada 30 segundos
             setInterval(loadSessions, 30000);
+
+            // Cerrar modal al hacer clic fuera de él
+            window.onclick = function(event) {
+                const modal = document.getElementById('deleteModal');
+                if (event.target === modal) {
+                    closeDeleteModal();
+                }
+            }
         });
 
         async function loadSessions() {
@@ -345,9 +580,18 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
-                const sessions = await response.json();
-                allSessions = sessions;
-                displaySessions(sessions);
+                const data = await response.json();
+                
+                // Si la respuesta tiene systemInfo, es el nuevo formato con memoria
+                if (data.systemInfo && data.sessions) {
+                    allSessions = Array.isArray(data.sessions) ? data.sessions : Object.values(data.sessions);
+                    displaySystemStats(data.systemInfo);
+                } else {
+                    // Formato antiguo, array directo
+                    allSessions = data;
+                }
+                
+                displaySessions(allSessions);
                 
             } catch (error) {
                 console.error('Error loading sessions:', error);
@@ -358,11 +602,42 @@
             }
         }
 
+        function displaySystemStats(systemInfo) {
+            const statsDiv = document.getElementById('system-stats');
+            if (!systemInfo) {
+                statsDiv.style.display = 'none';
+                return;
+            }
+
+            const memory = systemInfo.systemMemory || systemInfo.memory;
+            const uptime = formatUptime(systemInfo.uptime);
+
+            statsDiv.innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-value">${systemInfo.totalSessions || 0}</div>
+                    <div class="stat-label">Sesiones Activas</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${memory?.heapUsed || 0} MB</div>
+                    <div class="stat-label">Memoria Usada</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${systemInfo.averageMemoryPerSession || 0} MB</div>
+                    <div class="stat-label">Promedio por Sesión</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${uptime}</div>
+                    <div class="stat-label">Tiempo Activo</div>
+                </div>
+            `;
+            statsDiv.style.display = 'grid';
+        }
+
         function displaySessions(sessions) {
-            const content = document.getElementById('sessions-content');
+            const gridDiv = document.getElementById('sessions-grid');
             
             if (!sessions || sessions.length === 0) {
-                content.innerHTML = `
+                gridDiv.innerHTML = `
                     <div class="no-sessions">
                         <div class="no-sessions-icon">📱</div>
                         <h3>No hay sesiones activas</h3>
@@ -376,6 +651,26 @@
                 const statusClass = session.status || 'unknown';
                 const phoneNumber = session.phoneNumber || 'No disponible';
                 const sessionId = session.id || session.clientId || 'ID no disponible';
+                const memoryInfo = session.memoryInfo;
+                
+                let memoryDisplay = '';
+                if (memoryInfo) {
+                    const memoryMB = memoryInfo.estimatedSessionMemory || 0;
+                    const memoryPercent = Math.min((memoryMB / 100) * 100, 100); // Escala hasta 100MB = 100%
+                    const uptime = formatUptime(memoryInfo.uptime || 0);
+                    
+                    memoryDisplay = `
+                        <div class="memory-info">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span><strong>Memoria:</strong> ${memoryMB} MB</span>
+                                <span style="font-size: 0.8rem; color: #6c757d;">${uptime}</span>
+                            </div>
+                            <div class="memory-bar">
+                                <div class="memory-fill" style="width: ${memoryPercent}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }
                 
                 return `
                     <div class="session-card ${statusClass}" data-status="${statusClass}">
@@ -392,11 +687,24 @@
                             <p><strong>Teléfono:</strong> ${phoneNumber}</p>
                             <p><strong>Última actualización:</strong> ${new Date().toLocaleTimeString()}</p>
                         </div>
+
+                        <div class="session-actions">
+                            <button class="btn-delete" onclick="showDeleteModal('${sessionId}')">
+                                <span>🗑️</span>
+                                Eliminar
+                            </button>
+                            <button class="btn-info" onclick="showSessionInfo('${sessionId}')">
+                                <span>ℹ️</span>
+                                Detalles
+                            </button>
+                        </div>
+                        
+                        ${memoryDisplay}
                     </div>
                 `;
             }).join('');
 
-            content.innerHTML = `<div class="sessions-grid">${sessionsHtml}</div>`;
+            gridDiv.innerHTML = `<div class="sessions-grid">${sessionsHtml}</div>`;
         }
 
         function displayError(message) {
@@ -448,6 +756,106 @@
                 'authenticated': 'Autenticado exitosamente'
             };
             return descriptions[status] || 'Estado desconocido';
+        }
+
+        // Funciones para el modal de eliminación
+        function showDeleteModal(sessionId) {
+            sessionToDeleteId = sessionId;
+            document.getElementById('sessionToDelete').textContent = sessionId;
+            document.getElementById('deleteModal').style.display = 'block';
+        }
+
+        function closeDeleteModal() {
+            sessionToDeleteId = null;
+            document.getElementById('deleteModal').style.display = 'none';
+        }
+
+        async function confirmDelete() {
+            if (!sessionToDeleteId) return;
+
+            const deleteBtn = document.querySelector('.btn-confirm');
+            const originalText = deleteBtn.textContent;
+            
+            try {
+                // Mostrar estado de carga
+                deleteBtn.textContent = 'Eliminando...';
+                deleteBtn.disabled = true;
+
+                const response = await fetch('/api/sesiones', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        codeSession: sessionToDeleteId
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showToast('Sesión eliminada correctamente', 'success');
+                    closeDeleteModal();
+                    // Recargar sesiones después de un breve delay
+                    setTimeout(loadSessions, 1000);
+                } else {
+                    throw new Error(result.error || 'Error al eliminar la sesión');
+                }
+
+            } catch (error) {
+                console.error('Error deleting session:', error);
+                showToast('Error al eliminar la sesión: ' + error.message, 'error');
+            } finally {
+                deleteBtn.textContent = originalText;
+                deleteBtn.disabled = false;
+            }
+        }
+
+        function showSessionInfo(sessionId) {
+            const session = allSessions.find(s => 
+                (s.id || s.clientId) === sessionId
+            );
+            
+            if (session) {
+                const info = `
+Información de la Sesión: ${sessionId}
+
+Estado: ${getStatusDescription(session.status)}
+Teléfono: ${session.phoneNumber || 'No disponible'}
+Última actualización: ${new Date().toLocaleTimeString()}
+
+¿Quieres ver más detalles en la consola del navegador?
+                `;
+                
+                if (confirm(info)) {
+                    console.log('=== INFORMACIÓN DETALLADA DE SESIÓN ===');
+                    console.log('ID:', sessionId);
+                    console.log('Estado:', session.status);
+                    console.log('Teléfono:', session.phoneNumber);
+                    console.log('Objeto completo:', session);
+                }
+            } else {
+                showToast('No se encontró información de la sesión', 'error');
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.style.display = 'block';
+            
+            // Auto-ocultar después de 3 segundos
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        function formatUptime(seconds) {
+            if (seconds < 60) return `${seconds}s`;
+            if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+            if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
+            return `${Math.floor(seconds / 86400)}d ${Math.floor((seconds % 86400) / 3600)}h`;
         }
     </script>
 </body>
