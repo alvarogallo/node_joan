@@ -1,10 +1,14 @@
 // Importar las funciones necesarias desde el archivo principal de WhatsApp Client
 // Asegúrate de que la ruta '../whatsappClient' sea correcta según la ubicación de este archivo
+
 const {
     getSessionInfo,     // Para obtener el estado de la sesión
     initializeClient,   // Para iniciar el proceso de conexión/autenticación
-    getClientIdsFromDisk
-} = require("../whatsappClient"); // <-- Importamos desde tu archivo whatsappClient.js
+    getClientIdsFromDisk,
+    resetClientSession  // <-- Agregar esta importación si existe
+} = require("../whatsappClient");
+
+
 const fs = require('fs'); // Para manejar archivos (necesario para LocalAuth)
 const path = require('path'); // Para manejar rutas de archivos
 
@@ -195,34 +199,148 @@ const getQrCodeController = (req, res) => {
     }
 };
 
-const deleteSession = async (req, res) => {
-    const codeSession = req.body.codeSession || undefined;
-    if (!codeSession) {
-        return res.status(400).json({ error: 'Debes enviar un codigo de session en el BODY (ej. 12345678)' });
-    }
+// Reemplazar la función deleteSession completa en multiClient.js
 
-    // *** MODO TESTING ***
-    if (TESTING_MODE) {
-        console.log(`[${codeSession}] MODO TESTING - Eliminación de sesión simulada`);
-        return res.json({ 
-            success: true, 
-            message: 'TESTING MODE - Sesión eliminada (simulado)' 
+// Reemplazar la función deleteSession completa en multiClient.js
+
+const deleteSession = async (req, res) => {
+    // 1. Primero extraer codeSession
+    const codeSession = req.body.codeSession || undefined;
+    
+    // 2. Debug logs DESPUÉS de declarar la variable
+    console.log('=== DEBUG DELETE SESSION ===');
+    console.log('TESTING_MODE:', TESTING_MODE);
+    console.log('codeSession:', codeSession);
+    console.log('Request body:', req.body);
+    
+    // 3. Validaciones
+    if (!codeSession) {
+        return res.status(400).json({ 
+            error: 'Debes enviar un codigo de session en el BODY (ej. {"codeSession": "12345678"})' 
         });
     }
 
-    // *** CÓDIGO NORMAL ***
-    //borrar session local
-    const sessionDir = path.join(__dirname, '../.wwebjs_auth/', `session-${codeSession}`);
-    if (fs.existsSync(sessionDir)) {
-        logger.log(`[${codeSession}] Removing session files for ${codeSession} at ${sessionDir}`);
-        fs.rmSync(sessionDir, { recursive: true, force: true });
-    } else {
-        logger.error(fs.existsSync(sessionDir))
-        return res.status(404).json({ error: 'Session not found' });
+    // Validar formato del código
+    if (!/^\d{8,}$/.test(codeSession)) {
+        return res.status(400).json({ 
+            error: 'Formato de código inválido. Debe tener al menos 8 dígitos y contener solo números.' 
+        });
     }
 
-    return res.json({ success: true, message: 'Sesión borrada correctamente' });
-}
+    console.log(`[DELETE SESSION] Intentando eliminar sesión: ${codeSession}`);
+
+    try {
+        // *** MODO TESTING ***
+        if (TESTING_MODE) {
+            console.log(`[${codeSession}] MODO TESTING - Eliminación simulada (pero real para testing)`);
+            
+            // En modo testing, simular delay
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Intentar eliminar archivos reales incluso en modo testing para debug
+            const sessionDir = path.join(__dirname, '../.wwebjs_auth/', `session-${codeSession}`);
+            console.log('Buscando archivos en:', sessionDir);
+            
+            let filesExisted = false;
+            if (fs.existsSync(sessionDir)) {
+                console.log('Archivos encontrados, eliminando...');
+                fs.rmSync(sessionDir, { recursive: true, force: true });
+                filesExisted = true;
+                console.log('Archivos eliminados en modo testing');
+            } else {
+                console.log('No se encontraron archivos para eliminar');
+            }
+            
+            return res.json({ 
+                success: true, 
+                message: `TESTING MODE - Sesión ${codeSession} eliminada`,
+                deletedSession: codeSession,
+                mode: 'testing',
+                filesExisted: filesExisted,
+                searchPath: sessionDir
+            });
+        }
+
+        // *** CÓDIGO NORMAL - ELIMINACIÓN REAL ***
+        let sessionDeleted = false;
+        let filesDeleted = false;
+
+        console.log('Modo producción - eliminación real');
+
+        // 1. Intentar eliminar de memoria si tenemos la función
+        try {
+            if (typeof getSessionInfo === 'function') {
+                const sessionInfo = getSessionInfo(codeSession);
+                
+                if (sessionInfo && sessionInfo.client) {
+                    console.log(`[${codeSession}] Destruyendo cliente activo...`);
+                    await sessionInfo.client.destroy();
+                    console.log(`[${codeSession}] Cliente destruido exitosamente`);
+                    sessionDeleted = true;
+                }
+            }
+        } catch (clientError) {
+            console.warn(`[${codeSession}] Advertencia al destruir cliente:`, clientError.message);
+        }
+
+        // 2. Eliminar archivos de sesión del disco
+        const sessionDir = path.join(__dirname, '../.wwebjs_auth/', `session-${codeSession}`);
+        console.log('Buscando archivos en:', sessionDir);
+        
+        if (fs.existsSync(sessionDir)) {
+            console.log(`[${codeSession}] Eliminando archivos en: ${sessionDir}`);
+            fs.rmSync(sessionDir, { recursive: true, force: true });
+            filesDeleted = true;
+            console.log(`[${codeSession}] Archivos eliminados exitosamente`);
+        } else {
+            console.log(`[${codeSession}] No se encontraron archivos de sesión`);
+            
+            // Listar directorio padre para debug
+            const parentDir = path.join(__dirname, '../.wwebjs_auth/');
+            if (fs.existsSync(parentDir)) {
+                const files = fs.readdirSync(parentDir);
+                console.log('Archivos en .wwebjs_auth:', files);
+            } else {
+                console.log('El directorio .wwebjs_auth no existe');
+            }
+        }
+
+        // 3. Verificar si se eliminó algo
+        if (!filesDeleted && !sessionDeleted) {
+            return res.status(404).json({ 
+                success: false,
+                error: `Sesión ${codeSession} no encontrada`,
+                codeSession: codeSession,
+                searchPath: sessionDir
+            });
+        }
+
+        // 4. Respuesta de éxito
+        const message = filesDeleted 
+            ? `Sesión ${codeSession} eliminada correctamente`
+            : `Sesión ${codeSession} eliminada de memoria (no había archivos)`;
+
+        console.log(`[${codeSession}] Eliminación completada: ${message}`);
+        
+        return res.json({ 
+            success: true, 
+            message: message,
+            deletedSession: codeSession,
+            filesDeleted: filesDeleted,
+            sessionDeleted: sessionDeleted,
+            mode: 'production'
+        });
+
+    } catch (error) {
+        console.error(`[${codeSession}] Error durante eliminación:`, error);
+        
+        return res.status(500).json({ 
+            success: false,
+            error: `Error al eliminar sesión ${codeSession}: ${error.message}`,
+            codeSession: codeSession
+        });
+    }
+};
 
 // Exportar la función controladora para ser utilizada en la definición de rutas de Express
 module.exports = {
